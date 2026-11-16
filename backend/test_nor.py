@@ -69,3 +69,11 @@ def test_empty_words_english_error(isolated_db):
     with pytest.raises(HTTPException) as exc:
         nor.research(nor.Question(question="???", language="en"))
     assert exc.value.detail == "The question must contain words."
+
+
+def test_json_response_advertises_utf8_and_preserves_multilingual_text():
+    import json
+    content = {"answer": "Synthèse fondée sur la vie privée. العربية 🌍", "quote": "communauté"}
+    response = nor.UTF8JSONResponse(content)
+    assert response.headers["content-type"] == "application/json; charset=utf-8"
+    assert json.loads(response.body.decode("utf-8")) == content

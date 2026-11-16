@@ -66,6 +66,16 @@ Ou lancer `Start-NOR.ps1` depuis PowerShell. `Start-NOR.ps1 -CheckOnly` exécute
 
 Le serveur démarre au premier plan et écoute uniquement `127.0.0.1:8000`, avec un seul worker et sans journal des requêtes. Fermer le serveur avec Ctrl+C. Le lanceur ne crée pas de service permanent et n'ouvre pas le pare-feu. Il peut démarrer en mode extraits si un modèle est arrêté : vérifier le diagnostic et les avertissements avant de juger ses capacités.
 
+## Poser une question depuis PowerShell
+
+Une fois le serveur lancé, ouvrir une seconde fenêtre PowerShell dans NOR :
+
+```powershell
+.\Ask-NOR.ps1 -Question "Que disent les sources sur la vie privée et la censure ?"
+```
+
+Ajouter `-Details` pour afficher aussi les sources et diagnostics. Le script lit le jeton localement, sans l'afficher, et décode directement les octets UTF-8 pour éviter les accents déformés dans Windows PowerShell 5.1. Si l'exécution des scripts est bloquée par une politique locale, utiliser les commandes manuelles documentées sans modifier cette politique automatiquement.
+
 ## Connexion iPhone : étape encore distincte
 
 Le serveur local en HTTP n'est pas directement compatible avec les réglages HTTPS de l'app iPhone. Un accès HTTPS privé à cette machine doit être mis en place séparément, puis configuré dans NOR avec le jeton. Aucun tunnel, certificat, domaine public, hébergement ni signature Apple n'est créé par ce parcours.

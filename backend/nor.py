@@ -12,6 +12,7 @@ from threading import BoundedSemaphore
 
 import requests
 from fastapi import Depends, FastAPI, HTTPException
+from fastapi.responses import JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, Field
 from engine import investigate, index_embeddings, sync_index
@@ -19,7 +20,16 @@ from intelligence import Ollama, ModelUnavailable
 from crawler import crawl, fetch_page, save_page
 
 ROOT = Path(__file__).resolve().parent
-app = FastAPI(title="NOR private research", docs_url=None, redoc_url=None)
+
+
+class UTF8JSONResponse(JSONResponse):
+    # JSON is UTF-8 already. The explicit charset also helps legacy clients
+    # such as Windows PowerShell 5.1 decode the response correctly.
+    media_type = "application/json; charset=utf-8"
+
+
+app = FastAPI(title="NOR private research", docs_url=None, redoc_url=None,
+              default_response_class=UTF8JSONResponse)
 auth = HTTPBearer(auto_error=False)
 research_slots = BoundedSemaphore(2)
 
