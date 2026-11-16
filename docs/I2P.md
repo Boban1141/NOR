@@ -34,7 +34,7 @@ Dans une autre fenêtre :
 .\Ask-NOR.ps1 -Question "Que disent les sources I2P sur la confidentialité ?" -NoCache -Details
 ```
 
-`--network tor` limite collecte/diagnostic à Tor ; `--network all` est la valeur par défaut. Cela sélectionne le réseau de collecte, pas un filtre strict sur les réponses : les recherches utilisent l'index commun et peuvent citer Tor et I2P. Chaque source API possède un champ `network`. L'actualisation depuis l'app utilise les deux catalogues et conserve les budgets globaux existants. Le test `verify` reste explicitement un test Tor/Ollama, pas une validation I2P.
+`--network tor` limite collecte/diagnostic à Tor ; `--network all` est la valeur par défaut. Cela sélectionne le réseau de collecte. Les réponses utilisent désormais un périmètre automatique selon la question ou le choix explicite `-Network i2p|tor|all` : voir [qualité des réponses](QUALITE_REPONSES.md). L’index reste commun mais ses candidats sont filtrés avant classement. Chaque source API possède un champ `network`. L'actualisation depuis l'app utilise les deux catalogues et conserve les budgets globaux existants. Le test `verify` reste explicitement un test Tor/Ollama, pas une validation I2P.
 
 ## Limites de transport et de recherche
 

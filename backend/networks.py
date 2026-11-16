@@ -4,6 +4,16 @@ import re
 from urllib.parse import parse_qs, urlsplit
 
 
+def requested_network(question, selection="auto"):
+    if selection not in ("auto", "all", "tor", "i2p"):
+        raise ValueError("invalid_network_selection")
+    if selection != "auto":
+        return selection
+    i2p = bool(re.search(r"\bi2p\b", question, re.I))
+    tor = bool(re.search(r"\b(?:tor|onion)\b", question, re.I))
+    return "i2p" if i2p and not tor else "tor" if tor and not i2p else "all"
+
+
 def network(url):
     host = urlsplit(url).hostname or ""
     if host.endswith(".onion"):

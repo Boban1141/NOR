@@ -21,7 +21,7 @@ from ranking import focus_terms
 from source_catalog import registry, select_seeds, metadata, operator
 from intelligence import Ollama, ModelUnavailable
 from crawler import crawl, fetch_page, save_page
-from networks import validate_source, network as source_network
+from networks import validate_source, network as source_network, requested_network
 
 ROOT = Path(__file__).resolve().parent
 
@@ -93,6 +93,7 @@ class Question(BaseModel):
     refresh: bool = False
     profile: Literal["balanced", "deep"] = "balanced"
     use_cache: bool = True
+    network: Literal["auto", "all", "tor", "i2p"] = "auto"
 
 
 @app.get("/health")
@@ -113,14 +114,14 @@ def research(request: Question):
         collection_ms = 0
         if request.refresh:
             try:
-                selected = select_seeds(sources(), focus_terms(request.question, words), registry())
+                selected = select_seeds(sources(requested_network(request.question, request.network)), focus_terms(request.question, words), registry())
                 refreshed = crawl(selected, validate_source, database, max_pages=10, max_depth=2,
                                   budget=45, question=request.question, tokenizer=words)
                 collection_ms = round((time.monotonic() - started) * 1000)
             except (ValueError, OSError):
                 raise HTTPException(503, "Invalid source catalogue.")
         result = investigate(database, request.question, request.language, profile=request.profile,
-                             use_cache=request.use_cache and not request.refresh)
+                             use_cache=request.use_cache and not request.refresh, network_scope=request.network)
         result["collection"] = refreshed
         result["capabilities"]["live_search_used"] = bool(refreshed and refreshed["collected"])
         entries = registry()
