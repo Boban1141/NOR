@@ -1,0 +1,49 @@
+name: NOR - iPhone compilation and tests
+on:
+  workflow_dispatch:
+  pull_request:
+    paths: ['ios/**', '.github/workflows/ios-check.yml']
+permissions:
+  contents: read
+jobs:
+  ios:
+    runs-on: macos-15
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install project generator
+        run: brew install xcodegen
+      - name: Generate Xcode project
+        working-directory: ios
+        run: xcodegen generate
+      - name: Choose an available iPhone simulator
+        run: |
+          xcrun simctl list devices available --json > "$RUNNER_TEMP/devices.json"
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          groups = json.loads((Path(os.environ['RUNNER_TEMP']) / 'devices.json').read_text())['devices']
+          devices = [d for runtime, group in groups.items() if '.iOS-' in runtime for d in group if d['isAvailable'] and d['name'].startswith('iPhone')]
+          if not devices:
+              raise SystemExit('No iPhone simulator available')
+          with open(os.environ['GITHUB_ENV'], 'a') as env:
+              env.write('NOR_SIMULATOR_ID=' + devices[0]['udid'] + '\n')
+          PY
+      - name: Build and run iOS tests
+        run: |
+          xcodebuild test -project ios/NOR.xcodeproj -scheme NOR \
+            -destination "platform=iOS Simulator,id=$NOR_SIMULATOR_ID" \
+            -derivedDataPath build -resultBundlePath TestResults.xcresult \
+            CODE_SIGNING_ALLOWED=NO
+      - name: Compile for a physical iPhone without signing
+        run: |
+          xcodebuild build -project ios/NOR.xcodeproj -scheme NOR \
+            -destination 'generic/platform=iOS' -derivedDataPath DeviceBuild \
+            CODE_SIGNING_ALLOWED=NO
+      - name: Save test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: NOR-iOS-test-results
+          path: TestResults.xcresult
+          retention-days: 7

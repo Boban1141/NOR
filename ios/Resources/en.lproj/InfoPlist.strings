@@ -1,0 +1,2 @@
+"NSMicrophoneUsageDescription" = "NOR uses the microphone when you activate dictation or automatic voice conversation.";
+"NSSpeechRecognitionUsageDescription" = "NOR transcribes your question on this iPhone when on-device dictation is available.";

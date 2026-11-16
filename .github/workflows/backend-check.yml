@@ -1,0 +1,26 @@
+name: NOR - research engine checks
+on:
+  workflow_dispatch:
+  push:
+    paths: ['backend/**', '.github/workflows/backend-check.yml']
+  pull_request:
+    paths: ['backend/**', '.github/workflows/backend-check.yml']
+permissions:
+  contents: read
+jobs:
+  engine:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r backend/requirements.txt
+      - run: python -m pytest backend -q
+      - run: python backend/evaluate.py --output evaluation.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: NOR-synthetic-retrieval-evaluation
+          path: evaluation.json
+          retention-days: 7
