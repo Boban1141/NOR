@@ -23,6 +23,8 @@ Voir les [améliorations de rapidité et de pertinence](docs/RAPIDITE_ET_PERTINE
 
 Voir la [collecte liée à la question](docs/COLLECTE_CIBLEE.md) : six points de départ, diversité des opérateurs, liens classés selon la question et actualisation bornée.
 
+Pour les sources indisponibles : [diagnostic détaillé de collecte](docs/DIAGNOSTIC_COLLECTE.md), commande `manage.py diagnose-sources`.
+
 ## Limites actuelles
 
 Le connecteur IA est implémenté, mais aucun modèle réel n'est connecté dans cet environnement. Sans modèle, NOR restitue des extraits et des avertissements. Avec les modèles configurés, il peut planifier, rechercher par sens et synthétiser. Le collecteur suit des liens uniquement dans les domaines onion configurés. Les dates indiquent la collecte, pas la publication. Les sources ne sont jamais déclarées vérifiées automatiquement ; une citation exacte ne démontre pas qu'une affirmation est vraie.
@@ -83,7 +85,7 @@ cd backend
 python -m pytest -q
 ```
 
-86 tests Python passent sous Windows : authentification, langues, passages, indexation incrémentale, classement, sémantique avec vecteurs de test, contrôle des citations, pannes de modèle, restrictions et budgets du collecteur, sources de diagnostic et rapport d'échec d'activation. Les tests utilisent des modèles et transports simulés. Le test HTTP intégré reste à exécuter sur le serveur cible ; cet environnement bloque la création de sockets asyncio Windows. Ces tests ne valident pas une connexion Tor réelle ni la qualité d'un modèle réel.
+100 tests Python passent sous Windows : authentification, langues, passages, indexation incrémentale, classement, sémantique avec vecteurs de test, contrôle des citations, pannes de modèle, restrictions et budgets du collecteur, sources de diagnostic et rapport d'échec d'activation. Les tests utilisent des modèles et transports simulés. Le test HTTP intégré reste à exécuter sur le serveur cible ; cet environnement bloque la création de sockets asyncio Windows. Ces tests ne valident pas une connexion Tor réelle ni la qualité d'un modèle réel.
 
 Le petit [benchmark synthétique](docs/evaluation_v0.3.json), distinct du corpus de production, contient 8 documents et 11 questions. Le document attendu est retrouvé au premier rang pour les 11 questions. Cela ne démontre pas une performance exceptionnelle sur le dark web réel.
 

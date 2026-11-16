@@ -13,6 +13,28 @@ from ranking import focus_terms
 from source_catalog import relevance
 
 
+class CollectionError(ValueError):
+    def __init__(self, code, status=None):
+        super().__init__(code)
+        self.code = code
+        self.status = status
+
+
+def failure_details(error):
+    """Fixed codes only: never expose response bodies, URLs or proxy credentials."""
+    if isinstance(error, CollectionError):
+        return error.code, error.status
+    for kind, code in ((requests.exceptions.ProxyError, "proxy_error"),
+                       (requests.exceptions.SSLError, "tls_error"),
+                       (requests.Timeout, "network_timeout"),
+                       (requests.ConnectionError, "connection_error")):
+        if isinstance(error, kind):
+            return code, None
+    # Streaming read timeouts can arrive wrapped in ConnectionError. They are
+    # intentionally reported as connection_error rather than parsing raw text.
+    return ("request_error" if isinstance(error, requests.RequestException) else "page_rejected"), None
+
+
 def fetch_page(url, validate, budget=15):
     validate(url)
     proxy = os.getenv("NOR_TOR_PROXY", "socks5h://127.0.0.1:9050")
@@ -25,14 +47,28 @@ def fetch_page(url, validate, budget=15):
                          allow_redirects=False, stream=True,
                          headers={"User-Agent": "NOR-Research/0.3"}) as response:
             if response.status_code != 200:
-                raise ValueError("source_unavailable_or_redirect")
+                status = response.status_code
+                code = "http_error"
+                if 300 <= status < 400:
+                    code = "redirect_blocked"
+                    location = response.headers.get("Location")
+                    if location:
+                        try:
+                            target = urljoin(url, location)
+                            validate(target)
+                            code = "redirect_same_host" if urlsplit(target).hostname == urlsplit(url).hostname else "redirect_other_host"
+                        except ValueError:
+                            code = "redirect_invalid_target"
+                raise CollectionError(code, status)
             if "text/html" not in response.headers.get("Content-Type", "").lower():
-                raise ValueError("unsupported_content_type")
+                raise CollectionError("unsupported_content_type", 200)
             chunks, size = [], 0
             for chunk in response.iter_content(8192):
                 size += len(chunk)
-                if size > 1_000_000 or time.monotonic() > deadline:
-                    raise ValueError("page_budget_exceeded")
+                if size > 1_000_000:
+                    raise CollectionError("page_size_limit", 200)
+                if time.monotonic() > deadline:
+                    raise CollectionError("page_time_limit", 200)
                 chunks.append(chunk)
     soup = BeautifulSoup(b"".join(chunks), "html.parser")
     title = soup.title.get_text(" ", strip=True) if soup.title else "Untitled"
@@ -100,10 +136,11 @@ def crawl(seeds, validate, db_factory, max_pages=20, max_depth=2, budget=90, fet
                         queue.append((url, 1))
     visited, counts = set(), {"attempted": 0, "collected": 0, "failed": 0}
     host_attempts, collected_hosts = {}, set()
+    host_reports = {}
     deadline = time.monotonic() + budget
     fetcher = fetcher or fetch_page
     while queue and counts["attempted"] < max_pages and time.monotonic() < deadline:
-        if topics:
+        if queue:
             # Visit each selected host, then its best matching links. No remote
             # search endpoint receives the question or an automatically built URL.
             queue = deque(sorted(queue, key=lambda item: (
@@ -116,11 +153,15 @@ def crawl(seeds, validate, db_factory, max_pages=20, max_depth=2, budget=90, fet
         counts["attempted"] += 1
         host = urlsplit(url).hostname
         host_attempts[host] = host_attempts.get(host, 0) + 1
+        report = host_reports.setdefault(host, {"host_sha256": hashlib.sha256(host.encode()).hexdigest(),
+            "attempted": 0, "collected": 0, "failed": 0, "failure_codes": {}, "http_statuses": {}})
+        report["attempted"] += 1
         try:
             page = fetcher(url, validate, min(15, max(1, deadline - time.monotonic())))
             save_page(db_factory, page)
             counts["collected"] += 1
             collected_hosts.add(host)
+            report["collected"] += 1
             if depth < max_depth:
                 for target in page["links"][:100]:
                     try:
@@ -131,9 +172,18 @@ def crawl(seeds, validate, db_factory, max_pages=20, max_depth=2, budget=90, fet
                             and len(queue) < 500):
                         queue.append((target, depth + 1))
                         titles[target] = page.get("link_titles", {}).get(target, "")
-        except (requests.RequestException, ValueError):
+        except (requests.RequestException, ValueError) as exc:
             counts["failed"] += 1
+            report["failed"] += 1
+            code, status = failure_details(exc)
+            report["failure_codes"][code] = report["failure_codes"].get(code, 0) + 1
+            if status is not None:
+                key = str(status)
+                report["http_statuses"][key] = report["http_statuses"].get(key, 0) + 1
     counts["budget_exhausted"] = bool(queue)
+    counts["stop_reason"] = ("page_limit" if queue and counts["attempted"] >= max_pages else
+                             "time_budget" if queue else "completed")
+    counts["source_diagnostics"] = list(host_reports.values())
     if question:
         counts["query_guided"] = bool(topics)
         counts["selected_hosts"] = len(allowed)

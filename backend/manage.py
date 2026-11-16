@@ -164,7 +164,7 @@ def apply_environment():
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description="Manual private NOR activation; no CI required.")
-    parser.add_argument("command", choices=["init", "doctor", "collect", "embed", "verify", "serve"])
+    parser.add_argument("command", choices=["init", "doctor", "collect", "diagnose-sources", "embed", "verify", "serve"])
     parser.add_argument("--chat-model", default="")
     parser.add_argument("--embedding-model", default="")
     parser.add_argument("--port", type=int, default=8000)
@@ -193,11 +193,34 @@ def main(argv=None):
         else:
             import nor
             from engine import index_embeddings, sync_index
-            if args.command == "collect":
-                result = nor.crawl(nor.sources(), nor.validate_source, nor.database)
+            if args.command in ("collect", "diagnose-sources"):
+                seeds = nor.sources()
+                if args.command == "diagnose-sources":
+                    result = nor.crawl(seeds, nor.validate_source, nor.database,
+                                       max_pages=max(1, len(seeds)), max_depth=0, budget=180)
+                else:
+                    result = nor.crawl(seeds, nor.validate_source, nor.database)
                 with nor.database() as db:
                     sync_index(db)
+                from source_catalog import registry
+                import hashlib
+                from urllib.parse import urlsplit
+                entries = registry()
+                for source in result.get("source_diagnostics", []):
+                    entry = next((entry for entry in entries if hashlib.sha256(
+                        urlsplit(entry["url"]).hostname.encode()).hexdigest() == source["host_sha256"]), {})
+                    source["name"] = entry.get("name", "Configured source")
+                    source["declared_operator"] = entry.get("operator")
+                result["kind"] = "source_connectivity_diagnostic" if args.command == "diagnose-sources" else "collection_report"
+                result["configured_hosts"] = len({urlsplit(url).hostname for url in seeds})
+                result["unattempted_hosts"] = result["configured_hosts"] - len(result.get("source_diagnostics", []))
+                target = RUNTIME / ("source-diagnostics.json" if args.command == "diagnose-sources" else "collection-report.json")
+                temporary = target.with_suffix(".tmp")
+                temporary.write_text(json.dumps(result, indent=2, ensure_ascii=False), encoding="utf-8")
+                temporary.replace(target)
                 print(json.dumps(result, indent=2))
+                if args.command == "diagnose-sources":
+                    return 0 if not result["failed"] and not result["unattempted_hosts"] and result["collected"] else 1
                 return 0 if result["collected"] else 1
             from intelligence import Ollama
             with nor.database() as db:

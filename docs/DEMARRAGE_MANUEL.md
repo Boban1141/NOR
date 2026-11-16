@@ -83,3 +83,7 @@ Le serveur local en HTTP n'est pas directement compatible avec les réglages HTT
 ## Validation effectuée ici
 
 Les tests du lanceur vérifient la conservation du jeton, son absence des sorties, les erreurs de configuration, la différence entre service présent et modèles installés, et l'écoute limitée à la boucle locale. Les connexions réelles restent bloquées ici par l'absence de services et les limitations réseau décrites dans `ACTIVATION_REELLE.md`.
+
+## Comprendre les échecs de collecte
+
+Exécuter `.\.venv\Scripts\python.exe backend\manage.py diagnose-sources` pour tester uniquement les points de départ et enregistrer les causes par source. Voir [diagnostic de collecte](DIAGNOSTIC_COLLECTE.md). Le bilan distingue les domaines non tentés des domaines en échec.
