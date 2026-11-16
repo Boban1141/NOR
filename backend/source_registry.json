@@ -1,0 +1,136 @@
+[
+  {
+    "name": "Tor Project — Community",
+    "url": "http://xmrhfasfg5suueegrnc4gsgyi2tyclcy5oz7f5drnrodmdtob6t2ioyd.onion/",
+    "operator_reference": "https://onion.torproject.org/",
+    "purpose": "connectivity_test_public_mirror",
+    "exclusive_dark_web_information": false,
+    "reachability_verified": false,
+    "operator": "Tor Project",
+    "topics": [
+      "privacy",
+      "censorship",
+      "surveillance",
+      "anonymity"
+    ]
+  },
+  {
+    "name": "ProPublica",
+    "url": "http://p53lf57qovyuvwsc6xnrppyply3vtqm7l6pcobkmyqsiofyeznfu5uqd.onion/",
+    "operator_reference": "https://www.propublica.org/nerds/a-more-secure-and-anonymous-propublica-using-tor-hidden-services",
+    "purpose": "connectivity_test_public_mirror",
+    "exclusive_dark_web_information": false,
+    "reachability_verified": false,
+    "operator": "ProPublica",
+    "topics": [
+      "investigations",
+      "fraud",
+      "corruption",
+      "justice"
+    ]
+  },
+  {
+    "name": "Amnesty International",
+    "url": "https://www.amnestyl337aduwuvpf57irfl54ggtnuera45ygcxzuftwxjvvmpuzqd.onion/",
+    "operator_reference": "https://www.amnesty.org/en/latest/news/2023/12/global-amnesty-international-website-launches-on-tor-network-to-help-universal-access/",
+    "purpose": "connectivity_test_public_mirror",
+    "exclusive_dark_web_information": false,
+    "reachability_verified": false,
+    "operator": "Amnesty International",
+    "topics": [
+      "human rights",
+      "censorship",
+      "surveillance",
+      "droits humains",
+      "censure"
+    ]
+  },
+  {
+    "name": "Tor Project - Support",
+    "url": "http://rzuwtpc4wb3xdzrj3yeajsvm3fkq4vbeubm2tdxaqruzzzgs5dwemlad.onion/",
+    "operator": "Tor Project",
+    "topics": [
+      "privacy",
+      "censorship",
+      "surveillance",
+      "anonymity",
+      "confidentialite",
+      "censure"
+    ],
+    "operator_reference": "https://onion.torproject.org/",
+    "purpose": "research_public_mirror",
+    "exclusive_dark_web_information": false,
+    "reachability_verified": false,
+    "reference_checked_at": "2026-11-16"
+  },
+  {
+    "name": "Tor Project - Blog",
+    "url": "http://pzhdfe7jraknpj2qgu5cz2u3i4deuyfwmonvzu5i3nyw4t4bmg7o5pad.onion/",
+    "operator": "Tor Project",
+    "topics": [
+      "privacy",
+      "censorship",
+      "research",
+      "censure"
+    ],
+    "operator_reference": "https://onion.torproject.org/",
+    "purpose": "research_public_mirror",
+    "exclusive_dark_web_information": false,
+    "reachability_verified": false,
+    "reference_checked_at": "2026-11-16"
+  },
+  {
+    "name": "The Guardian",
+    "url": "https://www.guardian2zotagl6tmjucg3lrhxdk4dw3lhbqnkvvkywawy3oqfoprid.onion/",
+    "operator": "The Guardian",
+    "topics": [
+      "privacy",
+      "censorship",
+      "investigations",
+      "surveillance",
+      "world",
+      "censure"
+    ],
+    "operator_reference": "https://theguardian.engineering/blog/info-2022-oct-06-how-we-built-the-guardians-tor-onion-service",
+    "purpose": "research_public_mirror",
+    "exclusive_dark_web_information": false,
+    "reachability_verified": false,
+    "reference_checked_at": "2026-11-16"
+  },
+  {
+    "name": "I2P Project",
+    "url": "http://i2p-projekt.i2p/",
+    "operator": "I2P Project community",
+    "topics": [
+      "privacy",
+      "anonymity",
+      "censorship",
+      "network",
+      "reseau",
+      "confidentialite"
+    ],
+    "operator_reference": "https://i2p.net/en/docs/guides/gettingstarted/",
+    "purpose": "research_i2p_public_resource",
+    "exclusive_dark_web_information": false,
+    "reachability_verified": false,
+    "reference_checked_at": "2026-11-16"
+  },
+  {
+    "name": "I2P Community Forum",
+    "url": "http://i2pforum.i2p/",
+    "operator": "I2P Project community",
+    "topics": [
+      "privacy",
+      "anonymity",
+      "censorship",
+      "network",
+      "reseau",
+      "confidentialite"
+    ],
+    "operator_reference": "https://i2p.net/en/docs/guides/gettingstarted/",
+    "purpose": "research_i2p_public_resource",
+    "exclusive_dark_web_information": false,
+    "reachability_verified": false,
+    "reference_checked_at": "2026-11-16"
+  }
+]

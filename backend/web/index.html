@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f5f4ef">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="NOR">
+  <meta name="description" content="Votre espace privé de recherche Tor et I2P.">
+  <title>NOR — Recherche privée</title>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="icon" type="image/png" href="assets/icon-192.png">
+  <link rel="stylesheet" href="assets/style.css">
+  <script src="assets/app.js" defer></script>
+</head>
+<body>
+  <aside class="sidebar">
+    <a class="brand" href="/" aria-label="NOR"><span class="brand-mark">N<span>·</span></span><span>NOR</span></a>
+    <p class="sidebar-caption" data-fr="Votre espace de recherche." data-en="Your research space.">Votre espace de recherche.</p>
+    <button class="new-chat" id="new-chat"><span>＋</span><span data-fr="Nouvelle conversation" data-en="New conversation">Nouvelle conversation</span></button>
+    <div class="sidebar-bottom"><div class="network-badges"><span>TOR</span><span>I2P</span></div><p data-fr="Des sources à examiner.&#10;Des réponses à comprendre." data-en="Sources to examine.&#10;Answers to understand.">Des sources à examiner.<br>Des réponses à comprendre.</p><span class="private-label"><i></i><span data-fr="Votre connexion privée" data-en="Your private connection">Votre connexion privée</span></span></div>
+  </aside>
+  <main>
+    <header class="topbar">
+      <a href="/" class="mobile-brand" aria-label="NOR">N<span>·</span></a>
+      <div class="connection"><span id="connection-dot" class="status-dot"></span><span id="connection-label">Connexion…</span></div>
+      <div class="header-actions"><button id="install" class="quiet" data-fr="Installer NOR" data-en="Install NOR">Installer NOR</button><button id="settings-open" class="settings-button" aria-label="Réglages" title="Réglages">☷</button></div>
+    </header>
+    <section id="welcome" class="welcome">
+      <div class="eyebrow"><span></span><span data-fr="LA CURIOSITÉ, EN TOUTE CONFIANCE" data-en="A PRIVATE SPACE FOR CURIOSITY">LA CURIOSITÉ, EN TOUTE CONFIANCE</span></div>
+      <h1 data-fr="Une question.&#10;De nouvelles pistes." data-en="One question.&#10;New possibilities.">Une question.<br><em>De nouvelles pistes.</em></h1>
+      <p class="welcome-description" data-fr="Explorez vos sources Tor et I2P. Retrouvez les extraits, leur origine et les points qui restent ouverts." data-en="Explore your Tor and I2P sources. See the excerpts, their origins and the questions still open.">Explorez vos sources Tor et I2P. Retrouvez les extraits, leur origine et les points qui restent ouverts.</p>
+      <div class="suggestions">
+        <button data-question-fr="Que disent les sources sur la protection de la vie privée ?" data-question-en="What do the sources say about protecting privacy?"><span class="suggestion-icon">◌</span><strong data-fr="Vie privée" data-en="Privacy">Vie privée</strong><span data-fr="Comprendre les protections" data-en="Understand the safeguards">Comprendre les protections</span><b>↗</b></button>
+        <button data-question-fr="Comment les sources I2P décrivent-elles les tunnels réseau ?" data-question-en="How do I2P sources describe network tunnels?"><span class="suggestion-icon">⌁</span><strong data-fr="Le réseau I2P" data-en="The I2P network">Le réseau I2P</strong><span data-fr="Explorer son fonctionnement" data-en="Explore how it works">Explorer son fonctionnement</span><b>↗</b></button>
+        <button data-question-fr="Que disent Tor et Amnesty sur la surveillance et la censure ?" data-question-en="What do Tor and Amnesty say about surveillance and censorship?"><span class="suggestion-icon">◇</span><strong data-fr="Croiser les sources" data-en="Compare sources">Croiser les sources</strong><span data-fr="Examiner plusieurs points de vue" data-en="Examine different perspectives">Examiner plusieurs points de vue</span><b>↗</b></button>
+      </div>
+    </section>
+    <section id="messages" class="messages" aria-label="Conversation" aria-live="polite" aria-relevant="additions"></section>
+    <div id="research-status" class="research-status" role="status" hidden><span class="pulse"></span><span id="research-text"></span><button id="cancel" class="quiet" data-fr="Arrêter" data-en="Stop">Arrêter</button></div>
+    <div class="composer-wrap">
+      <p id="notice" class="notice" role="status" hidden></p>
+      <form id="ask-form" class="composer">
+        <label class="sr-only" for="question" data-fr="Votre question" data-en="Your question">Votre question</label>
+        <textarea id="question" rows="2" maxlength="2000" placeholder="Que souhaitez-vous explorer ?" required></textarea>
+        <div class="composer-controls"><div class="search-options"><label class="select-wrap"><span class="sr-only" data-fr="Réseau de recherche" data-en="Research network">Réseau de recherche</span><select id="network"><option value="auto">Auto · Tor + I2P</option><option value="all">Tor + I2P</option><option value="tor">Tor</option><option value="i2p">I2P</option></select></label><label class="refresh-label"><input id="refresh" type="checkbox"><span data-fr="Actualiser" data-en="Refresh">Actualiser</span></label></div><div class="send-actions"><button type="button" id="mic" class="mic-button" aria-label="Dicter une question">♩</button><button type="submit" id="send" class="send-button" aria-label="Envoyer la question">↑</button></div></div>
+      </form>
+      <p class="composer-note" data-fr="Tor et I2P uniquement · Les sources peuvent se tromper." data-en="Tor and I2P only · Sources can be wrong.">Tor et I2P uniquement · Les sources peuvent se tromper.</p>
+    </div>
+  </main>
+  <dialog id="login-dialog" aria-labelledby="login-title">
+    <div class="dialog-brand">N<span>·</span></div><p class="eyebrow" data-fr="VOTRE ESPACE PRIVÉ" data-en="YOUR PRIVATE SPACE">VOTRE ESPACE PRIVÉ</p><h2 id="login-title" data-fr="Bienvenue dans NOR." data-en="Welcome to NOR.">Bienvenue dans NOR.</h2><p data-fr="Saisissez le code affiché au lancement de NOR sur votre PC. Il est valable 10 minutes et ne sert qu’une fois." data-en="Enter the code displayed when starting NOR on your PC. It is valid for 10 minutes and can be used once.">Saisissez le code affiché au lancement de NOR sur votre PC. Il est valable 10 minutes et ne sert qu’une fois.</p>
+    <form id="login-form"><label for="pair-code" data-fr="Code de connexion" data-en="Pairing code">Code de connexion</label><input id="pair-code" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="0000 0000" class="pair-input"><details><summary data-fr="Utiliser le jeton du serveur" data-en="Use the server token">Utiliser le jeton du serveur</summary><label for="access-token" class="sr-only">Token</label><input id="access-token" type="password" autocomplete="off" placeholder="Jeton NOR"></details><p id="login-error" class="error" role="alert"></p><button class="primary" id="login-submit" data-fr="Connecter cet appareil →" data-en="Connect this device →">Connecter cet appareil →</button></form><p class="small" data-fr="La connexion reste active jusqu’à 7 jours sur cet appareil. Aucun historique de conversation n’est enregistré par cette interface." data-en="This device stays signed in for up to 7 days. This interface does not save conversation history.">La connexion reste active jusqu’à 7 jours sur cet appareil. Aucun historique de conversation n’est enregistré par cette interface.</p>
+  </dialog>
+  <dialog id="settings-dialog" aria-labelledby="settings-title"><div class="dialog-heading"><h2 id="settings-title" data-fr="Votre NOR" data-en="Your NOR">Votre NOR</h2><button id="settings-close" class="close-button" aria-label="Fermer">×</button></div>
+    <label for="language" data-fr="Langue" data-en="Language">Langue</label><select id="language"><option value="fr">Français</option><option value="en">English</option></select>
+    <label class="setting-switch"><span data-fr="Lire les réponses" data-en="Read answers aloud">Lire les réponses</span><input id="read-aloud" type="checkbox"></label>
+    <label for="voice" data-fr="Voix disponibles sur cet appareil" data-en="Voices available on this device">Voix disponibles sur cet appareil</label><select id="voice"></select><button id="voice-preview" class="secondary" data-fr="Écouter la voix" data-en="Preview voice">Écouter la voix</button>
+    <label class="setting-switch"><span data-fr="Conversation vocale automatique" data-en="Automatic voice conversation">Conversation vocale automatique</span><input id="automatic" type="checkbox"></label><p id="voice-note" class="small"></p>
+    <label class="setting-switch"><span data-fr="Recherche approfondie" data-en="Deeper research">Recherche approfondie</span><input id="deep" type="checkbox"></label><p class="small" data-fr="Explore davantage les extraits disponibles. La réponse peut prendre plus de temps." data-en="Examines the available excerpts further. Answers may take longer.">Explore davantage les extraits disponibles. La réponse peut prendre plus de temps.</p>
+    <button id="connection-test" class="secondary" data-fr="Tester la connexion" data-en="Test connection">Tester la connexion</button><p id="connection-result" class="small" role="status"></p><button id="signout" class="danger" data-fr="Déconnecter cet appareil" data-en="Sign out this device">Déconnecter cet appareil</button>
+  </dialog>
+  <dialog id="install-dialog" aria-labelledby="install-title"><div class="dialog-heading"><h2 id="install-title" data-fr="NOR sur votre iPhone" data-en="NOR on your iPhone">NOR sur votre iPhone</h2><button id="install-close" class="close-button" aria-label="Fermer">×</button></div><ol><li data-fr="Ouvrez cette adresse dans Safari, avec Tailscale connecté." data-en="Open this address in Safari, with Tailscale connected.">Ouvrez cette adresse dans Safari, avec Tailscale connecté.</li><li data-fr="Touchez Partager, puis Sur l’écran d’accueil." data-en="Tap Share, then Add to Home Screen.">Touchez Partager, puis Sur l’écran d’accueil.</li><li data-fr="Activez Ouvrir comme app Web si cette option apparaît, puis touchez Ajouter." data-en="Enable Open as Web App if shown, then tap Add.">Activez Ouvrir comme app Web si cette option apparaît, puis touchez Ajouter.</li></ol><p data-fr="Gardez NOR ouvert sur votre PC. Tailscale doit être connecté sur les deux appareils." data-en="Keep NOR running on your PC. Tailscale must be connected on both devices.">Gardez NOR ouvert sur votre PC. Tailscale doit être connecté sur les deux appareils.</p></dialog>
+</body></html>
