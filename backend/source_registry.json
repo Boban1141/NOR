@@ -1,0 +1,26 @@
+[
+  {
+    "name": "Tor Project — Community",
+    "url": "http://xmrhfasfg5suueegrnc4gsgyi2tyclcy5oz7f5drnrodmdtob6t2ioyd.onion/",
+    "operator_reference": "https://onion.torproject.org/",
+    "purpose": "connectivity_test_public_mirror",
+    "exclusive_dark_web_information": false,
+    "reachability_verified": false
+  },
+  {
+    "name": "ProPublica",
+    "url": "http://p53lf57qovyuvwsc6xnrppyply3vtqm7l6pcobkmyqsiofyeznfu5uqd.onion/",
+    "operator_reference": "https://www.propublica.org/nerds/a-more-secure-and-anonymous-propublica-using-tor-hidden-services",
+    "purpose": "connectivity_test_public_mirror",
+    "exclusive_dark_web_information": false,
+    "reachability_verified": false
+  },
+  {
+    "name": "Amnesty International",
+    "url": "https://www.amnestyl337aduwuvpf57irfl54ggtnuera45ygcxzuftwxjvvmpuzqd.onion/",
+    "operator_reference": "https://www.amnesty.org/en/latest/news/2023/12/global-amnesty-international-website-launches-on-tor-network-to-help-universal-access/",
+    "purpose": "connectivity_test_public_mirror",
+    "exclusive_dark_web_information": false,
+    "reachability_verified": false
+  }
+]

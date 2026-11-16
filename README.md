@@ -3,6 +3,8 @@
 NOR explore des sources difficiles d'accès et expose les preuves et leurs limites.
 Ce livrable est un **prototype de développement**, pas une application iOS signée ni un moteur de recherche exhaustif.
 
+Le projet de travail est maintenant dans le [dépôt privé NOR](https://github.com/Boban1141/NOR), [PR nº 1](https://github.com/Boban1141/NOR/pull/1). Voir [l'état d'activation réelle](docs/ACTIVATION_REELLE.md) : les exécutions distantes sont actuellement bloquées par la facturation GitHub, avant tout lancement de job.
+
 ## Ce qui est implémenté
 
 - Interface SwiftUI pour iPhone iOS 17+, avec choix français/anglais mémorisé, questions écrites et résultats avec extraits, dates et adresses.
@@ -21,7 +23,7 @@ Ce livrable est un **prototype de développement**, pas une application iOS sign
 
 Le connecteur IA est implémenté, mais aucun modèle réel n'est connecté dans cet environnement. Sans modèle, NOR restitue des extraits et des avertissements. Avec les modèles configurés, il peut planifier, rechercher par sens et synthétiser. Le collecteur suit des liens uniquement dans les domaines onion configurés. Les dates indiquent la collecte, pas la publication. Les sources ne sont jamais déclarées vérifiées automatiquement ; une citation exacte ne démontre pas qu'une affirmation est vraie.
 
-Cette première version ne peut donc pas encore satisfaire l'objectif de recherche approfondie sur le dark web. Aucun contenu réel n'a été collecté dans cet environnement. Aucun fournisseur IA ou vocal payant n'a été activé.
+Cette première version ne peut donc pas encore satisfaire l'objectif de recherche approfondie sur le dark web. Trois adresses Tor publiées par leurs opérateurs sont configurées pour vérifier la connexion ; elles sont des miroirs publics, pas encore le corpus spécialisé demandé. Aucun contenu réel n'a été collecté dans cet environnement. Aucun fournisseur IA ou vocal payant n'a été activé.
 
 Voir [le guide complet du moteur v0.3](docs/MOTEUR_RECHERCHE.md) pour activer les modèles, indexer les sources, comprendre les limites et reproduire les évaluations.
 
@@ -44,7 +46,7 @@ Le serveur reste local par défaut. Pour un iPhone physique, prévoir un accès 
 ## Ajouter des sources réelles
 
 1. Installer et démarrer Tor sur le serveur, avec un port SOCKS local (9050 par défaut).
-2. Ajouter dans `backend/sources.json` une liste JSON d'URL onion v3 exactes, obtenues depuis les publications officielles de leurs opérateurs et dont la consultation est autorisée. Aucun exemple fictif n'est préchargé.
+2. Vérifier les trois sources de diagnostic configurées, puis compléter `backend/sources.json` avec des sources pertinentes. Leur provenance est documentée dans `source_registry.json`. Aucun exemple fictif n'est préchargé.
 3. Exécuter `python nor.py crawl` puis `python nor.py index`. Après configuration d'un modèle d'embeddings, exécuter `python nor.py embed` pour activer la recherche sémantique.
 
 La collecte ne journalise pas les adresses ni les contenus. Les pages collectées sont enregistrées en clair dans `nor.sqlite3` : utiliser un disque chiffré, limiter les accès et définir une politique de rétention avant toute donnée sensible. Aucune garantie d'anonymat n'est fournie par le seul usage de Tor.
@@ -75,7 +77,7 @@ cd backend
 python -m pytest -q
 ```
 
-43 tests Python passent sous Windows : authentification, langues, passages, indexation incrémentale, classement, sémantique avec vecteurs de test, contrôle des citations, pannes de modèle, restrictions et budgets du collecteur. Les tests utilisent des modèles et transports simulés. Le test HTTP intégré reste à exécuter sur le serveur cible ; cet environnement bloque la création de sockets asyncio Windows. Ces tests ne valident pas une connexion Tor réelle ni la qualité d'un modèle réel.
+47 tests Python passent sous Windows : authentification, langues, passages, indexation incrémentale, classement, sémantique avec vecteurs de test, contrôle des citations, pannes de modèle, restrictions et budgets du collecteur, sources de diagnostic et rapport d'échec d'activation. Les tests utilisent des modèles et transports simulés. Le test HTTP intégré reste à exécuter sur le serveur cible ; cet environnement bloque la création de sockets asyncio Windows. Ces tests ne valident pas une connexion Tor réelle ni la qualité d'un modèle réel.
 
 Le petit [benchmark synthétique](docs/evaluation_v0.3.json), distinct du corpus de production, contient 8 documents et 11 questions. Le document attendu est retrouvé au premier rang pour les 11 questions. Cela ne démontre pas une performance exceptionnelle sur le dark web réel.
 

@@ -57,13 +57,19 @@ class Ollama:
             raise ModelUnavailable("invalid_model_endpoint")
         self.chat_model = os.getenv("NOR_CHAT_MODEL", "")
         self.embed_model = os.getenv("NOR_EMBED_MODEL", "")
+        try:
+            self.timeout = min(120, max(5, int(os.getenv("NOR_MODEL_TIMEOUT", "20"))))
+            self.context = min(32768, max(2048, int(os.getenv("NOR_MODEL_CONTEXT", "16384"))))
+            self.output_limit = min(4096, max(256, int(os.getenv("NOR_MODEL_OUTPUT_LIMIT", "2200"))))
+        except ValueError as exc:
+            raise ModelUnavailable("invalid_model_limits") from exc
 
     def post(self, path, payload):
-        deadline = time.monotonic() + 25
+        deadline = time.monotonic() + self.timeout + 5
         try:
             with requests.Session() as session:
                 session.trust_env = False
-                with session.post(self.url + path, json=payload, timeout=(3, 20),
+                with session.post(self.url + path, json=payload, timeout=(3, self.timeout),
                                   allow_redirects=False, stream=True) as response:
                     if response.status_code != 200:
                         raise ModelUnavailable("model_http_error")
@@ -83,7 +89,7 @@ class Ollama:
         result = self.post("/api/chat", {
             "model": self.chat_model, "stream": False, "format": schema.model_json_schema(),
             "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}],
-            "options": {"temperature": 0, "num_predict": 2200, "num_ctx": 16384},
+            "options": {"temperature": 0, "num_predict": self.output_limit, "num_ctx": self.context},
         })
         try:
             return schema.model_validate_json(result["message"]["content"])

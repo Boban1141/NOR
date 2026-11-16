@@ -53,7 +53,7 @@ def validate_source(url: str):
     parts = urlsplit(url)
     if (parts.scheme not in ("http", "https") or parts.username or parts.password
             or parts.port not in (None, 80, 443) or parts.fragment
-            or not re.fullmatch(r"[a-z2-7]{56}\.onion", parts.hostname or "")):
+            or not re.fullmatch(r"(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.){0,3}[a-z2-7]{56}\.onion", parts.hostname or "")):
         raise ValueError("Une adresse onion v3, sans identifiants ni port personnalisé, est requise.")
     return url
 

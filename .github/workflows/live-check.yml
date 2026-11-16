@@ -1,0 +1,52 @@
+name: NOR - live Tor and model connectivity
+on:
+  workflow_dispatch:
+  pull_request:
+    paths: ['backend/live_smoke.py', 'backend/source_registry.json', '.github/workflows/live-check.yml']
+permissions:
+  contents: read
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      NOR_CHAT_MODEL: qwen2.5:1.5b
+      NOR_EMBED_MODEL: bge-m3:567m
+      NOR_MODEL_TIMEOUT: '90'
+      NOR_MODEL_CONTEXT: '8192'
+      NOR_MODEL_OUTPUT_LIMIT: '768'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Python dependencies
+        run: python -m pip install -r backend/requirements.txt
+      - name: Install Tor and Ollama from their official distribution channels
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y tor
+          curl --fail --silent --show-error --location https://ollama.com/install.sh -o "$RUNNER_TEMP/install-ollama.sh"
+          sh "$RUNNER_TEMP/install-ollama.sh"
+          sudo systemctl start tor
+          sudo systemctl start ollama
+      - name: Download small integration-test models
+        run: |
+          ollama pull "$NOR_CHAT_MODEL"
+          ollama pull "$NOR_EMBED_MODEL"
+      - name: Allow Tor to bootstrap
+        run: |
+          for attempt in $(seq 1 30); do
+            if sudo journalctl -u tor@default --no-pager | grep -q 'Bootstrapped 100%'; then exit 0; fi
+            sleep 2
+          done
+          echo 'Tor bootstrap was not confirmed within one minute; live checks will report connection failures.'
+      - name: Run real connectivity checks
+        run: python backend/live_smoke.py --output live-smoke.json
+      - name: Save connectivity report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: NOR-live-connectivity
+          path: live-smoke.json
+          retention-days: 7
