@@ -47,6 +47,16 @@ class Synthesis(StrictModel):
     gaps: list[str] = Field(max_length=5)
 
 
+class SelectedClaim(StrictModel):
+    text: str = Field(min_length=10, max_length=1200)
+    evidence_ids: list[str] = Field(min_length=1, max_length=3)
+
+
+class SelectedSynthesis(StrictModel):
+    claims: list[SelectedClaim] = Field(max_length=3)
+    gaps: list[str] = Field(max_length=2)
+
+
 def vector(value):
     if not isinstance(value, list) or not 1 <= len(value) <= 8192:
         raise ModelUnavailable("invalid_vector")
@@ -105,15 +115,35 @@ class Ollama:
     def structured(self, system, user, schema):
         if not self.chat_model:
             raise ModelUnavailable("chat_model_not_configured")
+        # Resolve evidence on the server: small models need not copy quotations.
+        evidence = None
+        response_schema = schema
+        if schema is Synthesis:
+            payload = json.loads(user)
+            evidence = {}
+            for index, source in enumerate(payload["sources"], 1):
+                identifier = "E" + str(index)
+                source["evidence_id"] = identifier
+                evidence[identifier] = {"source_id": source["source_id"], "quote": source["excerpt"]}
+            user = json.dumps(payload, ensure_ascii=False)
+            system += " Select evidence_ids from the supplied evidence_id values. Do not write or translate quotations. Each identifier refers to that exact excerpt. Return text and evidence_ids for each claim, plus gaps, according to the JSON schema."
+            response_schema = SelectedSynthesis
         result = self.post("/api/chat", {
-            "model": self.chat_model, "stream": False, "format": schema.model_json_schema(),
+            "model": self.chat_model, "stream": False, "format": response_schema.model_json_schema(),
             "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}],
             "options": {"temperature": 0, "num_predict": self.output_limit, "num_ctx": self.context},
         })
         if isinstance(result, dict) and result.get("done_reason") == "length":
             raise ModelUnavailable("model_output_truncated")
         try:
-            return schema.model_validate_json(result["message"]["content"])
+            draft = response_schema.model_validate_json(result["message"]["content"])
+            if evidence is not None:
+                if any(identifier not in evidence for claim in draft.claims for identifier in claim.evidence_ids):
+                    raise ModelUnavailable("invalid_structured_response")
+                return Synthesis.model_validate({"claims": [
+                    {"text": claim.text, "evidence": [evidence[identifier] for identifier in dict.fromkeys(claim.evidence_ids)]}
+                    for claim in draft.claims], "gaps": draft.gaps})
+            return draft
         except (KeyError, TypeError, ValidationError) as exc:
             raise ModelUnavailable("invalid_structured_response") from exc
 

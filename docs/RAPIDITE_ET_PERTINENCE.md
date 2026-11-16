@@ -38,6 +38,12 @@ L'API accepte `profile: "balanced" | "deep"` et `use_cache: true | false`. `dura
 
 ## Validation et limites
 
-73 tests Python passent, dont 11 nouveaux tests de classement, de fenêtres exactes, de filtrage thématique, de couverture et de cache. Avec un modèle simulé et une question entièrement couverte, le profil balanced effectue un seul appel de conversation pour synthétiser ; une répétition depuis le cache n'en effectue aucun. Cela ne mesure pas la latence d'Ollama en conditions réelles.
+78 tests Python passent, dont 16 nouveaux tests de classement, de fenêtres exactes, de filtrage thématique, de couverture et de cache. Avec un modèle simulé et une question entièrement couverte, le profil balanced effectue un seul appel de conversation pour synthétiser ; une répétition depuis le cache n'en effectue aucun. Cela ne mesure pas la latence d'Ollama en conditions réelles.
 
 La connexion réseau de l'environnement de développement étant bloquée, ces modifications restent à mesurer avec Ollama et Tor sur le PC de l'utilisateur. Aucun gain en secondes ni qualité exceptionnelle générale n'est revendiqué. Le corpus actuel reste petit et la recherche porte sur les sources configurées.
+
+## Citations avec les petits modèles
+
+L’adaptateur Ollama demande désormais au modèle de sélectionner des identifiants de preuve, plutôt que de recopier des citations. Le serveur résout ces identifiants vers les extraits exacts déjà fournis. Un identifiant inconnu invalide la réponse structurée ; aucun extrait approchant ou inventé n’est substitué. Le contrôle final des citations et le filtre thématique restent actifs. Cette résolution ne démontre pas que le texte de l’affirmation découle logiquement de l’extrait. Elle ne demande aucun appel supplémentaire au modèle. Cinq tests supplémentaires couvrent les accents, les identifiants inconnus, le schéma et la déduplication.
+
+Un essai réel transmis par l’utilisateur après les optimisations a duré 17 093 ms, dont 2 922 ms de recherche et 14 156 ms de synthèse, avec zéro appel de planification. La synthèse avait cependant été rejetée pour citations non conformes. Ce résultat isolé ne constitue donc pas une mesure de qualité ni une garantie de latence ; la sélection de preuves doit encore être essayée avec son modèle réel.
