@@ -6,7 +6,7 @@ Pour la sélection thématique des sources et le suivi des liens, voir [collecte
 
 ## Fonctionnement implémenté
 
-1. **Collecte Tor** : les URL de départ sont configurées par l'opérateur. Le collecteur suit des liens uniquement dans ces domaines onion, avec plafonds de profondeur, de pages et de volume. Il ne découvre pas tous les sites du dark web. Aucun repli direct, redirection, exécution de JavaScript, téléchargement de binaire ou accès à un réseau privé n'est permis par ce collecteur.
+1. **Collecte Tor** : les URL de départ sont configurées par l'opérateur. Le collecteur suit des liens uniquement dans ces domaines onion, avec plafonds de profondeur, de pages et de volume. Il ne découvre pas tous les sites du dark web. Au maximum deux redirections validées sur le même hôte sont permises, sans diminution de HTTPS vers HTTP. Aucun repli direct, redirection externe, exécution de JavaScript, téléchargement de binaire ou accès à un réseau privé n'est permis par ce collecteur.
 2. **Versions** : les contenus textuels modifiés sont conservés durant 30 jours dans `page_versions`. L'index courant est mis à jour ; une ancienne version n'est pas présentée comme nouvelle.
 3. **Passages** : les pages sont découpées en passages de 1 500 caractères environ, avec chevauchement. Les offsets portent sur le texte normalisé (espaces regroupés), et non sur les octets du HTML original.
 4. **Recherche lexicale** : SQLite FTS5/BM25, retrait de mots courants FR/EN et expansion bilingue contrôlée pour quelques concepts. Cette expansion locale n'est pas un traducteur général.

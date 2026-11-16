@@ -1,4 +1,4 @@
-"""Bounded Tor collection: configured hosts only, no redirects or direct fallback."""
+"""Bounded Tor collection: same-host redirects only, no direct fallback."""
 from collections import deque
 from datetime import datetime, timezone
 import hashlib
@@ -35,7 +35,9 @@ def failure_details(error):
     return ("request_error" if isinstance(error, requests.RequestException) else "page_rejected"), None
 
 
-def fetch_page(url, validate, budget=15):
+def fetch_page(url, validate, budget=15, max_redirects=0):
+    if not 0 <= max_redirects <= 2:
+        raise ValueError("invalid_redirect_limit")
     validate(url)
     proxy = os.getenv("NOR_TOR_PROXY", "socks5h://127.0.0.1:9050")
     if not proxy.startswith("socks5h://"):
@@ -43,7 +45,7 @@ def fetch_page(url, validate, budget=15):
     deadline = time.monotonic() + budget
     with requests.Session() as session:
         session.trust_env = False
-        with session.get(url, proxies={"http": proxy, "https": proxy}, timeout=(5, min(8, budget)),
+        with session.get(url, proxies={"http": proxy, "https": proxy}, timeout=(min(8, budget), min(20, budget)),
                          allow_redirects=False, stream=True,
                          headers={"User-Agent": "NOR-Research/0.3"}) as response:
             if response.status_code != 200:
@@ -59,6 +61,17 @@ def fetch_page(url, validate, budget=15):
                             code = "redirect_same_host" if urlsplit(target).hostname == urlsplit(url).hostname else "redirect_other_host"
                         except ValueError:
                             code = "redirect_invalid_target"
+                    if code == "redirect_same_host" and max_redirects:
+                        if urlsplit(url).scheme == "https" and urlsplit(target).scheme != "https":
+                            raise CollectionError("redirect_tls_downgrade", status)
+                        remaining = deadline - time.monotonic()
+                        if remaining <= 0:
+                            raise CollectionError("page_time_limit", status)
+                        # requests never follows redirects itself. Each target is
+                        # validated before opening a new Tor-only connection.
+                        page = fetch_page(target, validate, remaining, max_redirects - 1)
+                        page["redirect_statuses"] = [status] + page.get("redirect_statuses", [])
+                        return page
                 raise CollectionError(code, status)
             if "text/html" not in response.headers.get("Content-Type", "").lower():
                 raise CollectionError("unsupported_content_type", 200)
@@ -138,7 +151,7 @@ def crawl(seeds, validate, db_factory, max_pages=20, max_depth=2, budget=90, fet
     host_attempts, collected_hosts = {}, set()
     host_reports = {}
     deadline = time.monotonic() + budget
-    fetcher = fetcher or fetch_page
+    fetcher = fetcher or (lambda url, validate, remaining: fetch_page(url, validate, remaining, max_redirects=2))
     while queue and counts["attempted"] < max_pages and time.monotonic() < deadline:
         if queue:
             # Visit each selected host, then its best matching links. No remote
@@ -157,11 +170,14 @@ def crawl(seeds, validate, db_factory, max_pages=20, max_depth=2, budget=90, fet
             "attempted": 0, "collected": 0, "failed": 0, "failure_codes": {}, "http_statuses": {}})
         report["attempted"] += 1
         try:
-            page = fetcher(url, validate, min(15, max(1, deadline - time.monotonic())))
+            page = fetcher(url, validate, min(30, max(1, deadline - time.monotonic())))
             save_page(db_factory, page)
             counts["collected"] += 1
             collected_hosts.add(host)
             report["collected"] += 1
+            for status in [200] + page.get("redirect_statuses", []):
+                key = str(status)
+                report["http_statuses"][key] = report["http_statuses"].get(key, 0) + 1
             if depth < max_depth:
                 for target in page["links"][:100]:
                     try:

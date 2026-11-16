@@ -16,7 +16,7 @@ Ces services sont des miroirs publics. Aucun n'est présenté comme une réserve
 4. Indexer lexicalement les textes reçus avant de répondre. Les nouveaux passages doivent encore être passés à `embed` pour enrichir l'index sémantique ; la réponse le signale. Les embeddings existants continuent de fonctionner sur les passages déjà indexés.
 5. Privilégier les opérateurs différents dans les résultats, avec au maximum deux passages par opérateur et par hôte. Afficher `coverage.distinct_operator_groups` et avertir avec `single_operator_evidence` si un seul groupe est représenté. L'indépendance reste non établie.
 
-Aucune requête de recherche n'est envoyée à Google. Aucun moteur onion externe n'est interrogé et aucune URL de recherche distante n'est construite à partir de la question. Les mots de la question servent seulement au classement local des liens observés. Les pages ne peuvent pas ajouter d'hôtes autorisés, exécuter du code, suivre des redirections ou provoquer un repli réseau direct.
+Aucune requête de recherche n'est envoyée à Google. Aucun moteur onion externe n'est interrogé et aucune URL de recherche distante n'est construite à partir de la question. Les mots de la question servent seulement au classement local des liens observés. Les pages ne peuvent pas ajouter d'hôtes autorisés, exécuter du code, suivre des redirections externes ou provoquer un repli réseau direct.
 
 La collecte dépend des liens réellement proposés par les sites. Un sujet absent du catalogue peut rester sans réponse. Les articles contradictoires ne sont pas encore identifiés par un module spécialisé de comparaison ; les synthèses et leur portée doivent être évaluées sur des cas réels.
 

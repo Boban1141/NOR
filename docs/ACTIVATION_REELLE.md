@@ -18,7 +18,7 @@ L'environnement local ne dispose ni de Tor ni d'Ollama. Docker Desktop est insta
 
 **Ce sont des miroirs publics destinés au diagnostic de connexion.** Ils ne constituent pas le corpus spécialisé demandé et ne promettent pas des informations exclusives au dark web. La provenance d'une adresse ne démontre pas qu'elle répond actuellement : `reachability_verified` reste faux jusqu'à une collecte réelle.
 
-Le collecteur accepte désormais les sous-domaines onion tels que le `www` publié par Amnesty. Les redirections et les accès hors domaines configurés restent refusés.
+Le collecteur accepte désormais les sous-domaines onion tels que le `www` publié par Amnesty. Les redirections externes et les accès hors domaines configurés restent refusés ; deux redirections au maximum vers le même hôte sont désormais permises, sans diminution de HTTPS vers HTTP.
 
 ## Test réel préparé
 
