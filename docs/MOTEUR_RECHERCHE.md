@@ -1,5 +1,7 @@
 # NOR v0.3 — moteur de recherche et intelligence
 
+Le profil par défaut est désormais adaptatif : voir [rapidité et pertinence](RAPIDITE_ET_PERTINENCE.md), y compris les paramètres de cache et les mesures disponibles. Le parcours en deux tours décrit ci-dessous concerne le profil `deep`.
+
 ## Fonctionnement implémenté
 
 1. **Collecte Tor** : les URL de départ sont configurées par l'opérateur. Le collecteur suit des liens uniquement dans ces domaines onion, avec plafonds de profondeur, de pages et de volume. Il ne découvre pas tous les sites du dark web. Aucun repli direct, redirection, exécution de JavaScript, téléchargement de binaire ou accès à un réseau privé n'est permis par ce collecteur.
@@ -7,7 +9,7 @@
 3. **Passages** : les pages sont découpées en passages de 1 500 caractères environ, avec chevauchement. Les offsets portent sur le texte normalisé (espaces regroupés), et non sur les octets du HTML original.
 4. **Recherche lexicale** : SQLite FTS5/BM25, retrait de mots courants FR/EN et expansion bilingue contrôlée pour quelques concepts. Cette expansion locale n'est pas un traducteur général.
 5. **Recherche sémantique optionnelle** : un modèle d'embeddings multilingue installé sur le serveur encode les passages et les requêtes. Recherche par similarité cosinus, puis fusion des classements lexicaux/sémantiques par Reciprocal Rank Fusion. Les vecteurs sont mis en cache par passage et nom de modèle.
-6. **Recherche en deux tours au maximum** : lorsqu'un modèle de conversation est configuré, il prépare des requêtes, puis peut proposer deux recherches complémentaires après avoir examiné les premiers extraits. Le nombre total de requêtes est plafonné à huit ; chaque recherche fusionne au plus six classements.
+6. **Profil approfondi, deux tours au maximum** : lorsqu'un modèle de conversation est configuré, il prépare des requêtes, puis peut proposer deux recherches complémentaires après avoir examiné les premiers extraits. Le nombre total de requêtes est plafonné à huit ; chaque recherche fusionne au plus six classements.
 7. **Diversité** : suppression des passages identiques et maximum de deux passages par hôte dans les huit résultats finaux. Deux hôtes ne prouvent pas deux auteurs indépendants ; les copies légèrement modifiées peuvent encore échapper au dédoublonnage.
 8. **Synthèse optionnelle** : le modèle renvoie des affirmations structurées, des citations exactes et des identifiants de source. Le serveur refuse une affirmation si une référence n'existe pas ou si sa citation n'est pas présente dans l'extrait associé.
 9. **Transparence** : le résultat indique les fonctions effectivement utilisées, les avertissements, les limites de couverture et les questions ouvertes. Aucun résultat n'est automatiquement déclaré vrai.

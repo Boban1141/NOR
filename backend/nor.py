@@ -86,6 +86,8 @@ class Question(BaseModel):
     question: str = Field(min_length=2, max_length=2000)
     language: Literal["fr", "en"] = "fr"
     refresh: bool = False
+    profile: Literal["balanced", "deep"] = "balanced"
+    use_cache: bool = True
 
 
 @app.get("/health")
@@ -107,7 +109,8 @@ def research(request: Question):
                 refreshed = crawl(sources(), validate_source, database, max_pages=8, max_depth=1, budget=35)
             except (ValueError, OSError):
                 raise HTTPException(503, "Invalid source catalogue.")
-        result = investigate(database, request.question, request.language)
+        result = investigate(database, request.question, request.language, profile=request.profile,
+                             use_cache=request.use_cache and not request.refresh)
         result["collection"] = refreshed
         result["capabilities"]["live_search_used"] = bool(refreshed and refreshed["collected"])
         if refreshed and refreshed["failed"]:

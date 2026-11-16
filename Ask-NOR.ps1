@@ -3,6 +3,8 @@ param(
     [ValidateSet('fr', 'en')][string]$Language = 'fr',
     [ValidateRange(1024, 65535)][int]$Port = 8000,
     [switch]$Refresh,
+    [switch]$Deep,
+    [switch]$NoCache,
     [switch]$Details
 )
 $ErrorActionPreference = 'Stop'
@@ -13,6 +15,8 @@ $norBody = @{
     question = $Question
     language = $Language
     refresh = [bool]$Refresh
+    profile = $(if ($Deep) { 'deep' } else { 'balanced' })
+    use_cache = -not [bool]$NoCache
 } | ConvertTo-Json
 $norHttp = Invoke-WebRequest -UseBasicParsing `
     -Uri "http://127.0.0.1:$Port/research" `
@@ -29,4 +33,10 @@ $norReader = [System.IO.StreamReader]::new($norStream, [System.Text.UTF8Encoding
 try { $norDecoded = $norReader.ReadToEnd() | ConvertFrom-Json }
 finally { $norReader.Dispose(); $norStream.Dispose() }
 if ($Details) { $norDecoded | ConvertTo-Json -Depth 12 }
-else { $norDecoded.answer }
+else {
+    if ($norDecoded.cache -and $norDecoded.cache.hit) {
+        if ($Language -eq 'fr') { Write-Host 'Réponse récente réutilisée ; sources inchangées.' }
+        else { Write-Host 'Recent answer reused; sources unchanged.' }
+    }
+    $norDecoded.answer
+}

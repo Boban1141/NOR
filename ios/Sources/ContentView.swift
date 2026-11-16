@@ -78,6 +78,9 @@ struct ContentView: View {
                             VStack(alignment: .leading, spacing: 14) {
                                 Text(turn.question).font(.title3.bold())
                                 Text(turn.response.answer).textSelection(.enabled)
+                                if turn.response.cache?.hit == true {
+                                    Text(t("Réponse récente réutilisée · sources inchangées", "Recent answer reused · sources unchanged")).font(.caption).foregroundStyle(.secondary)
+                                }
                                 if turn.response.mode != "grounded_synthesis" {
                                     Text(t("Résultats par extraits · synthèse IA non utilisée", "Excerpt results · AI synthesis not used"))
                                         .font(.caption).foregroundStyle(.secondary)

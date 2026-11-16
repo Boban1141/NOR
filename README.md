@@ -14,10 +14,12 @@ Le projet de travail est maintenant dans le [dépôt privé NOR](https://github.
 - Messages du serveur dans la langue choisie ; extraits conservés dans leur langue originale. Les synthèses et la recherche sémantique multilingue nécessitent les modèles configurés.
 - Jeton d'accès conservé dans le trousseau iOS, connexion serveur HTTPS uniquement.
 - API privée avec authentification, passages FTS5/BM25, variantes bilingues, fusion des classements, suppression des copies identiques et diversité des hôtes.
-- Connecteur Ollama pour recherche sémantique, planification en deux tours et synthèse structurée avec citations exactes contrôlées.
+- Connecteur Ollama pour recherche sémantique, planification adaptative ou approfondie en deux tours et synthèse structurée avec citations exactes contrôlées.
 - Collecteur HTML onion v3 via Tor SOCKS5h uniquement ; pas de repli réseau direct, de redirection, de JavaScript ni d'exécution de fichiers.
 - Suivi borné des liens dans les domaines configurés, conservation des versions modifiées et actualisation depuis l'app.
 - Aucun faux résultat de démonstration. Un catalogue vide donne explicitement zéro résultat.
+
+Voir les [améliorations de rapidité et de pertinence](docs/RAPIDITE_ET_PERTINENCE.md) : profil adaptatif par défaut, extraits ciblés, cache de trois minutes, mesures et commandes de vérification.
 
 ## Limites actuelles
 
@@ -79,7 +81,7 @@ cd backend
 python -m pytest -q
 ```
 
-62 tests Python passent sous Windows : authentification, langues, passages, indexation incrémentale, classement, sémantique avec vecteurs de test, contrôle des citations, pannes de modèle, restrictions et budgets du collecteur, sources de diagnostic et rapport d'échec d'activation. Les tests utilisent des modèles et transports simulés. Le test HTTP intégré reste à exécuter sur le serveur cible ; cet environnement bloque la création de sockets asyncio Windows. Ces tests ne valident pas une connexion Tor réelle ni la qualité d'un modèle réel.
+73 tests Python passent sous Windows : authentification, langues, passages, indexation incrémentale, classement, sémantique avec vecteurs de test, contrôle des citations, pannes de modèle, restrictions et budgets du collecteur, sources de diagnostic et rapport d'échec d'activation. Les tests utilisent des modèles et transports simulés. Le test HTTP intégré reste à exécuter sur le serveur cible ; cet environnement bloque la création de sockets asyncio Windows. Ces tests ne valident pas une connexion Tor réelle ni la qualité d'un modèle réel.
 
 Le petit [benchmark synthétique](docs/evaluation_v0.3.json), distinct du corpus de production, contient 8 documents et 11 questions. Le document attendu est retrouvé au premier rang pour les 11 questions. Cela ne démontre pas une performance exceptionnelle sur le dark web réel.
 

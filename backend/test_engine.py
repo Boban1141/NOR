@@ -310,7 +310,7 @@ def test_second_research_round_can_find_competing_source(database):
             if schema is Plan:
                 return Plan(queries=["counterargument archive"] if "previous_queries" in payload else ["alpha signal"])
             return Synthesis(claims=[], gaps=["Which interpretation is supported independently?"])
-    result = investigate(database, "alpha signal", "en", FollowupModel())
+    result = investigate(database, "alpha signal", "en", FollowupModel(), profile="deep")
     assert result["capabilities"]["research_rounds"] == 2
     assert expected in [item["url"] for item in result["sources"]]
     assert result["coverage"]["independence_established"] is False

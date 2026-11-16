@@ -17,6 +17,12 @@ struct ResearchResponse: Decodable {
     let warnings: [String]?
     let claims: [ResearchClaim]?
     let research_gaps: [String]?
+    let cache: ResearchCache?
+}
+
+struct ResearchCache: Decodable {
+    let hit: Bool
+    let age_seconds: Double?
 }
 
 struct ResearchClaim: Decodable {

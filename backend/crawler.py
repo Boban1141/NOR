@@ -3,6 +3,7 @@ from collections import deque
 from datetime import datetime, timezone
 import hashlib
 import os
+import re
 import time
 from urllib.parse import urldefrag, urljoin, urlsplit
 
@@ -44,8 +45,14 @@ def fetch_page(url, validate, budget=15):
             links.append(target)
     for node in soup(["script", "style", "iframe", "form", "nav", "footer"]):
         node.decompose()
-    return {"url": url, "title": title[:300], "body": soup.get_text(" ", strip=True)[:100_000],
-            "links": list(dict.fromkeys(links))}
+    content = soup.find("main") or soup.find("article") or soup
+    def priority(target):
+        path = urlsplit(target).path
+        locale_only = bool(re.fullmatch(r"/(?:[a-z]{2,3}(?:-[A-Za-z]{2,4})?)?/?", path))
+        topical = bool(re.search(r"privacy|censor|onion|surveillance|research|documentation", path, re.I))
+        return (locale_only, not topical, target)
+    return {"url": url, "title": title[:300], "body": content.get_text(" ", strip=True)[:100_000],
+            "links": sorted(dict.fromkeys(links), key=priority)}
 
 
 def save_page(db_factory, page):
