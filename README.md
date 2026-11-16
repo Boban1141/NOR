@@ -29,6 +29,8 @@ Le [connecteur I2P](docs/I2P.md) est ajouté : catalogue séparé, proxy HTTP lo
 
 Voir les [contrôles de langue, réseau et couverture](docs/QUALITE_REPONSES.md), avec sélection automatique I2P/Tor et option `-Network`.
 
+Le [parcours de connexion privée iPhone](docs/IPHONE_CONNEXION.md) est préparé : script Windows Tailscale Serve, test de connexion dans les réglages et script manuel de compilation/export sur macOS. L’application native reste à compiler, signer et installer.
+
 ## Limites actuelles
 
 Le connecteur IA est implémenté, mais aucun modèle réel n'est connecté dans cet environnement. Sans modèle, NOR restitue des extraits et des avertissements. Avec les modèles configurés, il peut planifier, rechercher par sens et synthétiser. Le collecteur suit des liens uniquement dans les domaines onion configurés. Les dates indiquent la collecte, pas la publication. Les sources ne sont jamais déclarées vérifiées automatiquement ; une citation exacte ne démontre pas qu'une affirmation est vraie.
@@ -93,7 +95,7 @@ python -m pytest -q
 
 Le petit [benchmark synthétique](docs/evaluation_v0.3.json), distinct du corpus de production, contient 8 documents et 11 questions. Le document attendu est retrouvé au premier rang pour les 11 questions. Cela ne démontre pas une performance exceptionnelle sur le dark web réel.
 
-Onze tests XCTest sont préparés : erreurs localisées, pauses et fin de question, cycle vocal, arrêt et réponse tardive après annulation. Ils n'ont pas été exécutés sous Windows ; leur exécution reste à effectuer manuellement sur macOS.
+Treize tests XCTest sont préparés : erreurs localisées, pauses et fin de question, cycle vocal, arrêt et réponse tardive après annulation. Ils n'ont pas été exécutés sous Windows ; leur exécution reste à effectuer manuellement sur macOS.
 
 À valider sur iPhone : refus des permissions, démarrage/arrêt dictée, interruption par appel ou mise en arrière-plan, absence de voix masculine, lecture longue, erreur d'accès, serveur hors ligne et tailles de texte accessibles.
 

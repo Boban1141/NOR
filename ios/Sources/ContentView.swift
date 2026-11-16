@@ -31,6 +31,8 @@ struct ContentView: View {
     @State private var turns: [Turn] = []
     @State private var busy = false
     @State private var settings = false
+    @State private var checkingConnection = false
+    @State private var connectionResult: String?
     @State private var error: String?
     @Environment(\.scenePhase) private var scenePhase
     private let accent = Color(red: 0.66, green: 0.85, blue: 0.68)
@@ -166,6 +168,23 @@ struct ContentView: View {
                         Section(t("Serveur privé", "Private server")) {
                             TextField("https://nor.example", text: $endpoint).textInputAutocapitalization(.never).autocorrectionDisabled().keyboardType(.URL)
                             SecureField(t("Jeton d’accès", "Access token"), text: $token)
+                            Button(t("Tester la connexion", "Test connection")) {
+                                let selectedLanguage = language
+                                let selectedEndpoint = endpoint
+                                let selectedToken = token
+                                checkingConnection = true
+                                connectionResult = nil
+                                Task {
+                                    defer { checkingConnection = false }
+                                    do {
+                                        connectionResult = try await ResearchAPI.checkConnection(endpoint: selectedEndpoint, token: selectedToken, language: selectedLanguage)
+                                    } catch {
+                                        connectionResult = error.localizedDescription
+                                    }
+                                }
+                            }.disabled(checkingConnection)
+                            if checkingConnection { ProgressView() }
+                            if let connectionResult { Text(connectionResult).font(.footnote) }
                             Text(t("Votre question est transmise à ce serveur. Le jeton reste dans le trousseau de l’iPhone.", "Your question is sent to this server. The token stays in the iPhone Keychain.")).font(.footnote)
                         }
                         Section(t("Recherche", "Research")) {
