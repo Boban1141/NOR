@@ -16,6 +16,7 @@ from intelligence import ModelUnavailable, Ollama, Plan, Synthesis, vector, erro
 from ranking import META_WORDS, focus_terms, focused_window, topic_matches, filter_topic_claims
 from response_cache import responses
 from source_catalog import registry, operator
+from networks import validate_source
 
 STOP = set("a an and are as at be by can did do does for from how i in is it of on or that the this to was what when where which who why with you your le la les un une des du de et est sont qui que quoi quel quelle quels quelles comment pourquoi dans sur pour par au aux je tu il elle nous vous ce cette ces d l s qu t ne pas".split())
 STOP |= META_WORDS
@@ -81,6 +82,13 @@ def sync_index(db):
     """Incremental migration from the existing pages table. No network access."""
     schema(db)
     pages = db.execute("SELECT url,title,body,collected_at,digest FROM pages").fetchall()
+    def eligible(page):
+        try:
+            validate_source(page["url"])
+            return True
+        except ValueError:
+            return False
+    pages = [page for page in pages if eligible(page)]
     current = {row["url"]: row["digest"] for row in db.execute("SELECT url,digest FROM documents")}
     page_urls = {row["url"] for row in pages}
     for url in current.keys() - page_urls:
@@ -255,7 +263,7 @@ def investigate(db_factory, question, language, model=None, profile="balanced", 
         database_path = db.execute("PRAGMA database_list").fetchone()[2]
         revision = [tuple(row) for row in db.execute("SELECT url,digest,collected_at FROM documents ORDER BY url")]
         semantic_revision = db.execute("SELECT value FROM engine_state WHERE name='semantic_revision'").fetchone()[0]
-        cache_key = hashlib.sha256(json.dumps(["focused-v3", database_path, revision, semantic_revision, registry(),
+        cache_key = hashlib.sha256(json.dumps(["focused-v4", database_path, revision, semantic_revision, registry(),
             question.strip(), language, profile, getattr(model, "url", ""),
             getattr(model, "chat_model", ""), getattr(model, "embed_model", ""),
             getattr(model, "timeout", 0), getattr(model, "context", 0), getattr(model, "output_limit", 0)], ensure_ascii=False).encode()).hexdigest()

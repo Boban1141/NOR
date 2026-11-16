@@ -72,7 +72,7 @@ struct ContentView: View {
                             .font(.caption.monospaced()).foregroundStyle(accent)
                         Text(t("Explorer.\nComprendre.\nVérifier.", "Explore.\nUnderstand.\nVerify.")).font(.system(size: 38, weight: .semibold, design: .serif))
                         Text(t("Des sources, des dates, et la place du doute.", "Sources, dates, and room for uncertainty.")).foregroundStyle(.secondary)
-                        Label(t("Sources Tor configurées · preuves à examiner", "Configured Tor sources · evidence to examine"), systemImage: "info.circle")
+                        Label(t("Sources Tor et I2P configurées · preuves à examiner", "Configured Tor and I2P sources · evidence to examine"), systemImage: "info.circle")
                             .font(.footnote).foregroundStyle(.secondary)
                         ForEach(turns) { turn in
                             VStack(alignment: .leading, spacing: 14) {
@@ -169,7 +169,7 @@ struct ContentView: View {
                             Text(t("Votre question est transmise à ce serveur. Le jeton reste dans le trousseau de l’iPhone.", "Your question is sent to this server. The token stays in the iPhone Keychain.")).font(.footnote)
                         }
                         Section(t("Recherche", "Research")) {
-                            Toggle(t("Actualiser les sources via Tor", "Refresh sources through Tor"), isOn: $refreshSources)
+                            Toggle(t("Actualiser les sources via Tor et I2P", "Refresh sources through Tor and I2P"), isOn: $refreshSources)
                             Text(t("Consulte les sources configurées avant la recherche. Cette opération peut prendre plus d’une minute. Aucun accès à tous les sites du dark web n’est garanti.", "Visits configured sources before searching. This can take over a minute. Access to every dark web site is not guaranteed.")).font(.footnote)
                         }
                         Section(t("Voix masculine", "Male voice")) {
@@ -183,7 +183,7 @@ struct ContentView: View {
                             Button(t("Écouter un échantillon", "Listen to a sample")) { read(t("Bonjour, je suis NOR. Explorons votre question et examinons les sources ensemble.", "Hello, I am NOR. Let us explore your question and examine the sources together.")) }
                         }
                         Section(t("Confidentialité", "Privacy")) {
-                            Text(t("Dictée locale uniquement. Aucun enregistrement audio conservé. La conversation reste en mémoire et disparaît à la fermeture complète. Les sources onion ne s’ouvrent pas dans Safari.", "On-device dictation only. No audio recordings are saved. Conversations stay in memory until the app fully closes. Onion sources do not open in Safari."))
+                            Text(t("Dictée locale uniquement. Aucun enregistrement audio conservé. La conversation reste en mémoire et disparaît à la fermeture complète. Les sources onion ne s’ouvrent pas dans Safari.", "On-device dictation only. No audio recordings are saved. Conversations stay in memory until the app fully closes. Onion and I2P addresses do not open in Safari."))
                         }
                     }.navigationTitle(t("Réglages", "Settings")).toolbar {
                         Button(t("Enregistrer", "Save")) {

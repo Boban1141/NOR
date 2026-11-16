@@ -96,5 +96,41 @@
     "exclusive_dark_web_information": false,
     "reachability_verified": false,
     "reference_checked_at": "2026-11-16"
+  },
+  {
+    "name": "I2P Project",
+    "url": "http://i2p-projekt.i2p/",
+    "operator": "I2P Project community",
+    "topics": [
+      "privacy",
+      "anonymity",
+      "censorship",
+      "network",
+      "reseau",
+      "confidentialite"
+    ],
+    "operator_reference": "https://i2p.net/en/docs/guides/gettingstarted/",
+    "purpose": "research_i2p_public_resource",
+    "exclusive_dark_web_information": false,
+    "reachability_verified": false,
+    "reference_checked_at": "2026-11-16"
+  },
+  {
+    "name": "I2P Community Forum",
+    "url": "http://i2pforum.i2p/",
+    "operator": "I2P Project community",
+    "topics": [
+      "privacy",
+      "anonymity",
+      "censorship",
+      "network",
+      "reseau",
+      "confidentialite"
+    ],
+    "operator_reference": "https://i2p.net/en/docs/guides/gettingstarted/",
+    "purpose": "research_i2p_public_resource",
+    "exclusive_dark_web_information": false,
+    "reachability_verified": false,
+    "reference_checked_at": "2026-11-16"
   }
 ]

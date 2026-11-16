@@ -87,3 +87,7 @@ Les tests du lanceur vérifient la conservation du jeton, son absence des sortie
 ## Comprendre les échecs de collecte
 
 Exécuter `.\.venv\Scripts\python.exe backend\manage.py diagnose-sources` pour tester uniquement les points de départ et enregistrer les causes par source. Voir [diagnostic de collecte](DIAGNOSTIC_COLLECTE.md). Le bilan distingue les domaines non tentés des domaines en échec.
+
+## Ajouter I2P au moteur
+
+Le proxy I2P doit être démarré séparément. Voir [le connecteur I2P](I2P.md) pour `diagnose-sources --network i2p`, la collecte et les limites. Le diagnostic `doctor` historique décrit Tor/Ollama ; le test du port 4444 seul ne valide pas un site I2P.

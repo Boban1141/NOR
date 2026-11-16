@@ -11,6 +11,7 @@ from bs4 import BeautifulSoup
 import requests
 from ranking import focus_terms
 from source_catalog import relevance
+from networks import transport_proxy, network
 
 
 class CollectionError(ValueError):
@@ -39,9 +40,7 @@ def fetch_page(url, validate, budget=15, max_redirects=0):
     if not 0 <= max_redirects <= 2:
         raise ValueError("invalid_redirect_limit")
     validate(url)
-    proxy = os.getenv("NOR_TOR_PROXY", "socks5h://127.0.0.1:9050")
-    if not proxy.startswith("socks5h://"):
-        raise ValueError("socks5h obligatoire pour résoudre les noms via Tor.")
+    proxy = transport_proxy(url)
     deadline = time.monotonic() + budget
     with requests.Session() as session:
         session.trust_env = False
@@ -167,7 +166,7 @@ def crawl(seeds, validate, db_factory, max_pages=20, max_depth=2, budget=90, fet
         host = urlsplit(url).hostname
         host_attempts[host] = host_attempts.get(host, 0) + 1
         report = host_reports.setdefault(host, {"host_sha256": hashlib.sha256(host.encode()).hexdigest(),
-            "attempted": 0, "collected": 0, "failed": 0, "failure_codes": {}, "http_statuses": {}})
+            "attempted": 0, "collected": 0, "failed": 0, "failure_codes": {}, "http_statuses": {}, "network": network(url)})
         report["attempted"] += 1
         try:
             page = fetcher(url, validate, min(30, max(1, deadline - time.monotonic())))

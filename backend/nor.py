@@ -21,6 +21,7 @@ from ranking import focus_terms
 from source_catalog import registry, select_seeds, metadata, operator
 from intelligence import Ollama, ModelUnavailable
 from crawler import crawl, fetch_page, save_page
+from networks import validate_source, network as source_network
 
 ROOT = Path(__file__).resolve().parent
 
@@ -60,23 +61,24 @@ def authorize(credentials: HTTPAuthorizationCredentials | None = Depends(auth)):
         raise HTTPException(401, "Accès refusé.")
 
 
-def validate_source(url: str):
-    if not isinstance(url, str) or len(url) > 2048:
-        raise ValueError("Invalid source URL.")
-    parts = urlsplit(url)
-    if (parts.scheme not in ("http", "https") or parts.username or parts.password
-            or parts.port not in (None, 80, 443) or parts.fragment
-            or not re.fullmatch(r"(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.){0,3}[a-z2-7]{56}\.onion", parts.hostname or "")):
-        raise ValueError("Une adresse onion v3, sans identifiants ni port personnalisé, est requise.")
-    return url
-
-
-def sources():
-    path = Path(os.getenv("NOR_SOURCES", str(ROOT / "sources.json")))
-    data = json.loads(path.read_text(encoding="utf-8"))
-    if not isinstance(data, list) or len(data) > 50:
-        raise ValueError("Le catalogue doit contenir au plus 50 adresses.")
-    return [validate_source(url) for url in data]
+def sources(network="all"):
+    from networks import network as source_network
+    if network not in ("all", "tor", "i2p"):
+        raise ValueError("invalid_network")
+    output = []
+    for kind, variable, filename in (("tor", "NOR_SOURCES", "sources.json"), ("i2p", "NOR_I2P_SOURCES", "sources_i2p.json")):
+        if network not in ("all", kind):
+            continue
+        path = Path(os.getenv(variable, str(ROOT / filename)))
+        data = json.loads(path.read_text(encoding="utf-8"))
+        if not isinstance(data, list) or len(data) > 50:
+            raise ValueError("At most 50 sources per network.")
+        for url in data:
+            validate_source(url)
+            if source_network(url) != kind:
+                raise ValueError("source_in_wrong_network_catalogue")
+            output.append(url)
+    return output
 
 
 def collect(url):
@@ -125,6 +127,7 @@ def research(request: Question):
         groups = set()
         for source in result["sources"]:
             entry = metadata(source["url"], entries)
+            source["network"] = source_network(source["url"])
             source["declared_operator"] = entry.get("operator")
             source["operator_reference"] = entry.get("operator_reference")
             groups.add(operator(source["url"], entries))
@@ -152,7 +155,7 @@ def capabilities():
     return {"version": "0.3.0", "indexed_passages": chunks, "embedded_passages": embedded,
             "chat_model_configured": bool(os.getenv("NOR_CHAT_MODEL")),
             "embedding_model_configured": bool(model), "model_connectivity_verified": False,
-            "live_search_from_app": True, "scope": "configured_onion_sources"}
+            "live_search_from_app": True, "scope": "configured_darknet_sources", "networks": ["tor", "i2p"]}
 
 
 if __name__ == "__main__":

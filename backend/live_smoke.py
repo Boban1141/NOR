@@ -32,7 +32,7 @@ def run(output):
                 report["embeddings"] = len(vectors) == 2 and len(vectors[0]) == len(vectors[1])
             except ModelUnavailable as exc:
                 report["failures"].append("embeddings:" + str(exc))
-            collection = crawl(nor.sources(), nor.validate_source, nor.database, max_pages=3, max_depth=0, budget=90)
+            collection = crawl(nor.sources("tor"), nor.validate_source, nor.database, max_pages=3, max_depth=0, budget=90)
             report["collection"] = collection
             report["tor"] = collection["collected"] > 0
             if report["tor"]:

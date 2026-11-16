@@ -24,6 +24,7 @@ DEFAULTS = {
     "chat_model": "",
     "embedding_model": "",
     "tor_proxy": "socks5h://127.0.0.1:9050",
+    "i2p_proxy": "http://127.0.0.1:4444",
     "model_timeout": 20,
     "model_context": 16384,
     "model_output_limit": 2200,
@@ -39,7 +40,7 @@ def load_config(path=None):
     if not isinstance(value, dict) or set(value) - set(DEFAULTS):
         raise ValueError("Unknown configuration keys.")
     result = DEFAULTS | value
-    for name in ("ollama_url", "chat_model", "embedding_model", "tor_proxy"):
+    for name in ("ollama_url", "chat_model", "embedding_model", "tor_proxy", "i2p_proxy"):
         if not isinstance(result[name], str):
             raise ValueError("Configuration values must be strings.")
     endpoint = urlsplit(result["ollama_url"])
@@ -50,6 +51,11 @@ def load_config(path=None):
     proxy = urlsplit(result["tor_proxy"])
     if proxy.scheme != "socks5h" or not proxy.hostname or not proxy.port or proxy.username or proxy.password or proxy.path not in ("", "/"):
         raise ValueError("Configure a SOCKS5h proxy without embedded credentials.")
+    i2p = urlsplit(result["i2p_proxy"])
+    if (i2p.scheme != "http" or i2p.hostname not in ("127.0.0.1", "localhost", "::1")
+            or not i2p.port or i2p.username is not None or i2p.password is not None
+            or i2p.path not in ("", "/") or i2p.query or i2p.fragment):
+        raise ValueError("I2P requires a local HTTP proxy without credentials.")
     for name, low, high in (("model_timeout", 5, 120), ("model_context", 2048, 32768), ("model_output_limit", 256, 4096)):
         if type(result[name]) is not int or not low <= result[name] <= high:
             raise ValueError("Invalid model limits.")
@@ -154,6 +160,8 @@ def apply_environment():
     values = {
         "NOR_ACCESS_TOKEN": token, "NOR_DB": str(RUNTIME / "nor.sqlite3"),
         "NOR_SOURCES": str(Path(__file__).parent / "sources.json"),
+        "NOR_I2P_SOURCES": str(Path(__file__).parent / "sources_i2p.json"),
+        "NOR_I2P_PROXY": config["i2p_proxy"],
         "NOR_OLLAMA_URL": config["ollama_url"], "NOR_CHAT_MODEL": config["chat_model"],
         "NOR_EMBED_MODEL": config["embedding_model"], "NOR_TOR_PROXY": config["tor_proxy"],
         "NOR_MODEL_TIMEOUT": str(config["model_timeout"]), "NOR_MODEL_CONTEXT": str(config["model_context"]),
@@ -168,6 +176,7 @@ def main(argv=None):
     parser.add_argument("--chat-model", default="")
     parser.add_argument("--embedding-model", default="")
     parser.add_argument("--port", type=int, default=8000)
+    parser.add_argument("--network", choices=["all", "tor", "i2p"], default="all")
     args = parser.parse_args(argv)
     try:
         if args.command == "init":
@@ -194,7 +203,7 @@ def main(argv=None):
             import nor
             from engine import index_embeddings, sync_index
             if args.command in ("collect", "diagnose-sources"):
-                seeds = nor.sources()
+                seeds = nor.sources(args.network)
                 if args.command == "diagnose-sources":
                     result = nor.crawl(seeds, nor.validate_source, nor.database,
                                        max_pages=max(1, len(seeds)), max_depth=0, budget=180)
