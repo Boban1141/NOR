@@ -1,4 +1,11 @@
-# NOR — application iPhone bilingue et moteur de recherche, v0.4
+# NOR - application mobile privée Tor et I2P
+
+## Utiliser NOR sur iPhone dès maintenant
+
+L’interface mobile installable est construite et intégrée au serveur. Arrêter l’ancien serveur, puis lancer `./Start-NOR-Mobile.ps1` depuis PowerShell dans NOR. Ouvrir votre adresse HTTPS privée NOR dans Safari avec Tailscale connecté, saisir le code de connexion affiché sur le PC, puis Partager → Sur l’écran d’accueil. Aucun Mac ni compte Apple Developer n’est requis pour ce parcours.
+
+Voir [le guide mobile](docs/NOR_MOBILE.md) pour la connexion, l’installation, la voix et les limites. Le serveur existant doit être redémarré pour servir l’interface. L’installation réelle sur Safari reste à confirmer.
+
 
 NOR explore des sources difficiles d'accès et expose les preuves et leurs limites.
 Ce livrable est un **prototype de développement**, pas une application iOS signée ni un moteur de recherche exhaustif.
@@ -91,7 +98,7 @@ cd backend
 python -m pytest -q
 ```
 
-145 tests Python passent sous Windows : authentification, langues, passages, indexation incrémentale, classement, sémantique avec vecteurs de test, contrôle des citations, pannes de modèle, restrictions et budgets du collecteur, sources de diagnostic et rapport d'échec d'activation. Les tests utilisent des modèles et transports simulés. Le test HTTP intégré reste à exécuter sur le serveur cible ; cet environnement bloque la création de sockets asyncio Windows. Ces tests ne valident pas une connexion Tor réelle ni la qualité d'un modèle réel.
+157 tests Python passent sous Windows : authentification, langues, passages, indexation incrémentale, classement, sémantique avec vecteurs de test, contrôle des citations, pannes de modèle, restrictions et budgets du collecteur, sources de diagnostic et rapport d'échec d'activation. Les tests utilisent des modèles et transports simulés. Le test HTTP intégré reste à exécuter sur le serveur cible ; cet environnement bloque la création de sockets asyncio Windows. Ces tests ne valident pas une connexion Tor réelle ni la qualité d'un modèle réel.
 
 Le petit [benchmark synthétique](docs/evaluation_v0.3.json), distinct du corpus de production, contient 8 documents et 11 questions. Le document attendu est retrouvé au premier rang pour les 11 questions. Cela ne démontre pas une performance exceptionnelle sur le dark web réel.
 

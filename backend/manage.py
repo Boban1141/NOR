@@ -172,7 +172,7 @@ def apply_environment():
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description="Manual private NOR activation; no CI required.")
-    parser.add_argument("command", choices=["init", "doctor", "collect", "diagnose-sources", "embed", "verify", "serve"])
+    parser.add_argument("command", choices=["init", "doctor", "collect", "diagnose-sources", "embed", "verify", "serve", "pair"])
     parser.add_argument("--chat-model", default="")
     parser.add_argument("--embedding-model", default="")
     parser.add_argument("--port", type=int, default=8000)
@@ -187,6 +187,11 @@ def main(argv=None):
             print(json.dumps(report, indent=2))
             return 0 if report["engine_prerequisites_met"] else 2
         apply_environment()
+        if args.command == "pair":
+            import nor
+            from webapp import create_pairing
+            print("NOR pairing code (valid 10 minutes, single use): " + create_pairing(nor.database))
+            return 0
         if args.command == "serve":
             if not 1024 <= args.port <= 65535:
                 raise ValueError("Use a port between 1024 and 65535.")

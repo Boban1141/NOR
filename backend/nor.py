@@ -12,7 +12,7 @@ from contextlib import contextmanager
 from threading import BoundedSemaphore
 
 import requests
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, Field
@@ -53,10 +53,14 @@ def database():
         db.close()
 
 
-def authorize(credentials: HTTPAuthorizationCredentials | None = Depends(auth)):
+def authorize(credentials: HTTPAuthorizationCredentials | None = Depends(auth), request: Request = None):
     token = os.getenv("NOR_ACCESS_TOKEN", "")
     if len(token) < 32:
         raise HTTPException(503, "Configurer un jeton serveur d'au moins 32 caractères.")
+    if credentials is None and request is not None:
+        from webapp import session_valid
+        if session_valid(request, database):
+            return
     if credentials is None or not secrets.compare_digest(credentials.credentials.encode(), token.encode()):
         raise HTTPException(401, "Accès refusé.")
 
@@ -157,6 +161,10 @@ def capabilities():
             "chat_model_configured": bool(os.getenv("NOR_CHAT_MODEL")),
             "embedding_model_configured": bool(model), "model_connectivity_verified": False,
             "live_search_from_app": True, "scope": "configured_darknet_sources", "networks": ["tor", "i2p"]}
+
+
+from webapp import install_web
+install_web(app, ROOT, database)
 
 
 if __name__ == "__main__":

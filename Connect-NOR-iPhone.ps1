@@ -30,6 +30,9 @@ if ($Enable -and $norState -eq 'empty') {
     if ($norState -ne 'nor') { throw 'Serve configuration could not be confirmed. Inspect tailscale serve status.' }
 }
 if ($norState -eq 'nor') {
+    $norRuntime = Join-Path $PSScriptRoot '.runtime'
+    if (-not (Test-Path -LiteralPath $norRuntime)) { New-Item -ItemType Directory -Path $norRuntime | Out-Null }
+    [System.IO.File]::WriteAllText((Join-Path $norRuntime 'mobile-url'), "https://$norDns", [System.Text.UTF8Encoding]::new($false))
     Write-Output "NOR private address: https://$norDns"
     Write-Output "From your iPhone with Tailscale connected, open: https://$norDns/health"
     Write-Output 'Keep the NOR server running. Enter the address and access token separately in the app settings.'
