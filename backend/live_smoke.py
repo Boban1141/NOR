@@ -8,7 +8,7 @@ import time
 
 from crawler import crawl
 from engine import index_embeddings, investigate
-from intelligence import ModelUnavailable, Ollama, Plan
+from intelligence import ModelUnavailable, Ollama, Plan, error_code
 import nor
 
 
@@ -49,6 +49,8 @@ def run(output):
                 report["result_count"] = len(result["sources"])
                 report["accepted_claims"] = len(result["claims"])
                 report["warnings"] = result["warnings"]
+                report["diagnostics"] = result.get("diagnostics", [])
+                report["failures"].extend(item["stage"] + ":" + item["code"] for item in report["diagnostics"])
             else:
                 report["failures"].append("tor:no_source_collected")
     except (ModelUnavailable, OSError, ValueError) as exc:

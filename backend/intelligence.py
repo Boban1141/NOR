@@ -6,11 +6,22 @@ import time
 from urllib.parse import urlsplit
 
 import requests
+from urllib3.exceptions import ReadTimeoutError
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 
 class ModelUnavailable(Exception):
     pass
+
+
+def error_code(error):
+    known = {"model_timeout", "model_connection_error", "model_http_error", "model_response_too_large",
+             "model_unavailable", "invalid_structured_response", "model_output_truncated",
+             "chat_model_not_configured", "embedding_model_not_configured", "invalid_model_endpoint",
+             "invalid_model_limits", "invalid_vector", "invalid_embedding_count", "invalid_embedding_response",
+             "inconsistent_dimensions", "embedding_dimensions_changed_reindex_required"}
+    value = str(error)
+    return value if value in known else "model_error"
 
 
 class StrictModel(BaseModel):
@@ -76,10 +87,18 @@ class Ollama:
                     chunks, size = [], 0
                     for chunk in response.iter_content(1024):
                         size += len(chunk)
-                        if size > 2_000_000 or time.monotonic() > deadline:
+                        if size > 2_000_000:
                             raise ModelUnavailable("model_response_too_large")
+                        if time.monotonic() > deadline:
+                            raise ModelUnavailable("model_timeout")
                         chunks.append(chunk)
             return json.loads(b"".join(chunks))
+        except requests.Timeout as exc:
+            raise ModelUnavailable("model_timeout") from exc
+        except requests.ConnectionError as exc:
+            if any(isinstance(item, ReadTimeoutError) for item in exc.args):
+                raise ModelUnavailable("model_timeout") from exc
+            raise ModelUnavailable("model_connection_error") from exc
         except (requests.RequestException, ValueError, TypeError) as exc:
             raise ModelUnavailable("model_unavailable") from exc
 
@@ -91,6 +110,8 @@ class Ollama:
             "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}],
             "options": {"temperature": 0, "num_predict": self.output_limit, "num_ctx": self.context},
         })
+        if isinstance(result, dict) and result.get("done_reason") == "length":
+            raise ModelUnavailable("model_output_truncated")
         try:
             return schema.model_validate_json(result["message"]["content"])
         except (KeyError, TypeError, ValidationError) as exc:

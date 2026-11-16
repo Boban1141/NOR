@@ -132,6 +132,7 @@ def test_provider_failure_falls_back_without_inventing(database):
     assert result["mode"] == "advanced_extractive"
     assert "synthesis_unavailable" in result["warnings"]
     assert not result["capabilities"]["synthesis_used"]
+    assert result["diagnostics"] == [{"stage": "synthesis", "code": "model_error"}]
 
 
 def test_empty_catalogue_does_not_call_synthesis(database):
@@ -313,3 +314,29 @@ def test_second_research_round_can_find_competing_source(database):
     assert result["capabilities"]["research_rounds"] == 2
     assert expected in [item["url"] for item in result["sources"]]
     assert result["coverage"]["independence_established"] is False
+
+
+@pytest.mark.parametrize("exception_name,expected", [("ReadTimeout", "model_timeout"), ("ConnectionError", "model_connection_error"), ("WrappedTimeout", "model_timeout")])
+def test_model_transport_reports_safe_error_category(monkeypatch, exception_name, expected):
+    import requests
+    class Session:
+        def __enter__(self): return self
+        def __exit__(self, *args): pass
+        def post(self, *args, **kwargs):
+            if exception_name == "WrappedTimeout":
+                from urllib3.exceptions import ReadTimeoutError
+                raise requests.ConnectionError(ReadTimeoutError(None, None, "sensitive-provider-details"))
+            raise getattr(requests, exception_name)("sensitive-provider-details")
+    monkeypatch.setattr("intelligence.requests.Session", Session)
+    with pytest.raises(ModelUnavailable) as caught:
+        Ollama().post("/api/chat", {})
+    assert str(caught.value) == expected
+    assert "sensitive" not in str(caught.value)
+
+
+def test_truncated_model_json_is_reported_explicitly(monkeypatch):
+    monkeypatch.setenv("NOR_CHAT_MODEL", "fixture")
+    model = Ollama()
+    monkeypatch.setattr(model, "post", lambda *args: {"done_reason": "length", "message": {"content": '{"queries":['}})
+    with pytest.raises(ModelUnavailable, match="model_output_truncated"):
+        model.structured("system", "question", Plan)

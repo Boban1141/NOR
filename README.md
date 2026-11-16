@@ -79,7 +79,7 @@ cd backend
 python -m pytest -q
 ```
 
-57 tests Python passent sous Windows : authentification, langues, passages, indexation incrémentale, classement, sémantique avec vecteurs de test, contrôle des citations, pannes de modèle, restrictions et budgets du collecteur, sources de diagnostic et rapport d'échec d'activation. Les tests utilisent des modèles et transports simulés. Le test HTTP intégré reste à exécuter sur le serveur cible ; cet environnement bloque la création de sockets asyncio Windows. Ces tests ne valident pas une connexion Tor réelle ni la qualité d'un modèle réel.
+61 tests Python passent sous Windows : authentification, langues, passages, indexation incrémentale, classement, sémantique avec vecteurs de test, contrôle des citations, pannes de modèle, restrictions et budgets du collecteur, sources de diagnostic et rapport d'échec d'activation. Les tests utilisent des modèles et transports simulés. Le test HTTP intégré reste à exécuter sur le serveur cible ; cet environnement bloque la création de sockets asyncio Windows. Ces tests ne valident pas une connexion Tor réelle ni la qualité d'un modèle réel.
 
 Le petit [benchmark synthétique](docs/evaluation_v0.3.json), distinct du corpus de production, contient 8 documents et 11 questions. Le document attendu est retrouvé au premier rang pour les 11 questions. Cela ne démontre pas une performance exceptionnelle sur le dark web réel.
 
