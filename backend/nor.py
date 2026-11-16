@@ -5,6 +5,7 @@ from pathlib import Path
 import re
 import secrets
 import sqlite3
+import time
 from urllib.parse import urlsplit
 from typing import Literal
 from contextlib import contextmanager
@@ -15,7 +16,9 @@ from fastapi import Depends, FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, Field
-from engine import investigate, index_embeddings, sync_index
+from engine import investigate, index_embeddings, sync_index, words
+from ranking import focus_terms
+from source_catalog import registry, select_seeds, metadata, operator
 from intelligence import Ollama, ModelUnavailable
 from crawler import crawl, fetch_page, save_page
 
@@ -103,18 +106,37 @@ def research(request: Question):
     if not research_slots.acquire(blocking=False):
         raise HTTPException(429, "NOR is busy. Retry shortly.")
     try:
+        started = time.monotonic()
         refreshed = None
+        collection_ms = 0
         if request.refresh:
             try:
-                refreshed = crawl(sources(), validate_source, database, max_pages=8, max_depth=1, budget=35)
+                selected = select_seeds(sources(), focus_terms(request.question, words), registry())
+                refreshed = crawl(selected, validate_source, database, max_pages=10, max_depth=2,
+                                  budget=45, question=request.question, tokenizer=words)
+                collection_ms = round((time.monotonic() - started) * 1000)
             except (ValueError, OSError):
                 raise HTTPException(503, "Invalid source catalogue.")
         result = investigate(database, request.question, request.language, profile=request.profile,
                              use_cache=request.use_cache and not request.refresh)
         result["collection"] = refreshed
         result["capabilities"]["live_search_used"] = bool(refreshed and refreshed["collected"])
+        entries = registry()
+        groups = set()
+        for source in result["sources"]:
+            entry = metadata(source["url"], entries)
+            source["declared_operator"] = entry.get("operator")
+            source["operator_reference"] = entry.get("operator_reference")
+            groups.add(operator(source["url"], entries))
+        result["coverage"]["distinct_operator_groups"] = len(groups)
+        if result["sources"] and len(groups) < 2:
+            result["warnings"].append("single_operator_evidence")
+        if refreshed and refreshed["collected"]:
+            result["warnings"].append("new_pages_lexically_indexed_run_embed_for_semantics")
         if refreshed and refreshed["failed"]:
             result["warnings"].append("some_live_sources_unavailable")
+        result["timings"]["collection_ms"] = collection_ms
+        result["duration_ms"] = round((time.monotonic() - started) * 1000)
         return result
     finally:
         research_slots.release()

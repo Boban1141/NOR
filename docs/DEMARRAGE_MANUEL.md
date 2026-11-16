@@ -54,7 +54,7 @@ Le diagnostic vérifie les dépendances, la présence du jeton, la réponse d'Ol
 
 `verify` utilise un corpus temporaire, vérifie Tor et les modèles et écrit `.runtime/live-smoke.json`. Il ne déclare pas le moteur prêt si la synthèse ou une connexion manque.
 
-`collect` conserve les pages et leurs passages dans `.runtime/nor.sqlite3`. `embed` calcule les vecteurs avec le modèle configuré. Les trois premières sources sont des miroirs publics de diagnostic ; compléter le catalogue pour les besoins de recherche spécialisés.
+`collect` conserve les pages et leurs passages dans `.runtime/nor.sqlite3`. `embed` calcule les vecteurs avec le modèle configuré. Les six points de départ sont des miroirs publics et des ressources documentaires ; compléter le catalogue pour les besoins spécialisés. Voir [la collecte ciblée](COLLECTE_CIBLEE.md), activée avec `-Refresh` pour une question.
 
 ## 6. Démarrer le serveur
 

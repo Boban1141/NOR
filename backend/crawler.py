@@ -9,6 +9,8 @@ from urllib.parse import urldefrag, urljoin, urlsplit
 
 from bs4 import BeautifulSoup
 import requests
+from ranking import focus_terms
+from source_catalog import relevance
 
 
 def fetch_page(url, validate, budget=15):
@@ -34,7 +36,7 @@ def fetch_page(url, validate, budget=15):
                 chunks.append(chunk)
     soup = BeautifulSoup(b"".join(chunks), "html.parser")
     title = soup.title.get_text(" ", strip=True) if soup.title else "Untitled"
-    links = []
+    links, link_titles = [], {}
     for anchor in soup.find_all("a", href=True, limit=250):
         target = urldefrag(urljoin(url, anchor["href"]))[0]
         try:
@@ -43,6 +45,7 @@ def fetch_page(url, validate, budget=15):
             continue
         if urlsplit(target).hostname == urlsplit(url).hostname:
             links.append(target)
+            link_titles[target] = anchor.get_text(" ", strip=True)[:250]
     for node in soup(["script", "style", "iframe", "form", "nav", "footer"]):
         node.decompose()
     content = soup.find("main") or soup.find("article") or soup
@@ -52,7 +55,7 @@ def fetch_page(url, validate, budget=15):
         topical = bool(re.search(r"privacy|censor|onion|surveillance|research|documentation", path, re.I))
         return (locale_only, not topical, target)
     return {"url": url, "title": title[:300], "body": content.get_text(" ", strip=True)[:100_000],
-            "links": sorted(dict.fromkeys(links), key=priority)}
+            "links": sorted(dict.fromkeys(links), key=priority), "link_titles": link_titles}
 
 
 def save_page(db_factory, page):
@@ -65,28 +68,59 @@ def save_page(db_factory, page):
         db.execute("INSERT OR IGNORE INTO page_versions VALUES (?,?,?,?,?)", values)
         db.execute("DELETE FROM pages WHERE url=?", (page["url"],))
         db.execute("INSERT INTO pages VALUES (?,?,?,?,?)", values)
+        db.execute("CREATE TABLE IF NOT EXISTS discovered_links (parent TEXT, url TEXT, title TEXT, PRIMARY KEY(parent,url))")
+        db.execute("DELETE FROM discovered_links WHERE parent=?", (page["url"],))
+        db.executemany("INSERT OR IGNORE INTO discovered_links VALUES (?,?,?)", [
+            (page["url"], url, page.get("link_titles", {}).get(url, "")[:250]) for url in page.get("links", [])[:250]])
 
 
-def crawl(seeds, validate, db_factory, max_pages=20, max_depth=2, budget=90, fetcher=None):
+def crawl(seeds, validate, db_factory, max_pages=20, max_depth=2, budget=90, fetcher=None,
+          question=None, tokenizer=None):
     if not 1 <= max_pages <= 100 or not 0 <= max_depth <= 3 or not 1 <= budget <= 180:
         raise ValueError("invalid_crawl_limits")
     for seed in seeds:
         validate(seed)
     allowed = {urlsplit(seed).hostname for seed in seeds}
     queue = deque((seed, 0) for seed in dict.fromkeys(seeds))
+    topics = focus_terms(question, tokenizer) if question and tokenizer else []
+    titles = {}
+    # Reuse previously observed links only inside the explicitly configured scope.
+    if topics:
+        with db_factory() as db:
+            exists = db.execute("SELECT 1 FROM sqlite_master WHERE name='discovered_links'").fetchone()
+            if exists:
+                for parent, url, title in db.execute("SELECT parent,url,title FROM discovered_links ORDER BY parent,url LIMIT 12500"):
+                    try:
+                        validate(url)
+                    except ValueError:
+                        continue
+                    if (urlsplit(parent).hostname in allowed and urlsplit(url).hostname in allowed
+                            and relevance(url + " " + title, topics) and len(queue) < 500):
+                        titles[url] = title
+                        queue.append((url, 1))
     visited, counts = set(), {"attempted": 0, "collected": 0, "failed": 0}
+    host_attempts, collected_hosts = {}, set()
     deadline = time.monotonic() + budget
     fetcher = fetcher or fetch_page
     while queue and counts["attempted"] < max_pages and time.monotonic() < deadline:
+        if topics:
+            # Visit each selected host, then its best matching links. No remote
+            # search endpoint receives the question or an automatically built URL.
+            queue = deque(sorted(queue, key=lambda item: (
+                host_attempts.get(urlsplit(item[0]).hostname, 0),
+                -relevance(item[0] + " " + titles.get(item[0], ""), topics), item[1])))
         url, depth = queue.popleft()
-        if url in visited or urlsplit(url).hostname not in allowed:
+        if url in visited or depth > max_depth or urlsplit(url).hostname not in allowed:
             continue
         visited.add(url)
         counts["attempted"] += 1
+        host = urlsplit(url).hostname
+        host_attempts[host] = host_attempts.get(host, 0) + 1
         try:
             page = fetcher(url, validate, min(15, max(1, deadline - time.monotonic())))
             save_page(db_factory, page)
             counts["collected"] += 1
+            collected_hosts.add(host)
             if depth < max_depth:
                 for target in page["links"][:100]:
                     try:
@@ -96,7 +130,12 @@ def crawl(seeds, validate, db_factory, max_pages=20, max_depth=2, budget=90, fet
                     if (urlsplit(target).hostname in allowed and target not in visited
                             and len(queue) < 500):
                         queue.append((target, depth + 1))
+                        titles[target] = page.get("link_titles", {}).get(target, "")
         except (requests.RequestException, ValueError):
             counts["failed"] += 1
     counts["budget_exhausted"] = bool(queue)
+    if question:
+        counts["query_guided"] = bool(topics)
+        counts["selected_hosts"] = len(allowed)
+        counts["collected_hosts"] = len(collected_hosts)
     return counts

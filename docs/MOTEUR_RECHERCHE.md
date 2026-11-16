@@ -2,6 +2,8 @@
 
 Le profil par défaut est désormais adaptatif : voir [rapidité et pertinence](RAPIDITE_ET_PERTINENCE.md), y compris les paramètres de cache et les mesures disponibles. Le parcours en deux tours décrit ci-dessous concerne le profil `deep`.
 
+Pour la sélection thématique des sources et le suivi des liens, voir [collecte liée à la question](COLLECTE_CIBLEE.md).
+
 ## Fonctionnement implémenté
 
 1. **Collecte Tor** : les URL de départ sont configurées par l'opérateur. Le collecteur suit des liens uniquement dans ces domaines onion, avec plafonds de profondeur, de pages et de volume. Il ne découvre pas tous les sites du dark web. Aucun repli direct, redirection, exécution de JavaScript, téléchargement de binaire ou accès à un réseau privé n'est permis par ce collecteur.
@@ -55,7 +57,7 @@ En cas de modèle absent, de réponse invalide, de citation inventée ou de pann
 
 ## Utiliser l'application
 
-Les réglages permettent d'activer « Actualiser les sources via Tor ». Cette option demande au serveur de revisiter au plus huit pages des domaines configurés avant la recherche. L'actualisation n'est pas une exploration illimitée pilotée par la question. L'app affiche les repères `[S1]`, `[S2]`, les citations inspectables et les questions encore ouvertes.
+Les réglages permettent d'activer « Actualiser les sources via Tor ». Cette option demande au serveur de tenter au plus dix pages des domaines sélectionnés selon la question, avec une profondeur de deux liens et un budget nominal de 45 secondes avant la recherche. L'actualisation n'est pas une exploration illimitée pilotée par la question. L'app affiche les repères `[S1]`, `[S2]`, les citations inspectables et les questions encore ouvertes.
 
 L'API conserve `POST /research`, avec le contrat :
 

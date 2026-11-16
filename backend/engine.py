@@ -15,6 +15,7 @@ from urllib.parse import urlsplit
 from intelligence import ModelUnavailable, Ollama, Plan, Synthesis, vector, error_code
 from ranking import META_WORDS, focus_terms, focused_window, topic_matches, filter_topic_claims
 from response_cache import responses
+from source_catalog import registry, operator
 
 STOP = set("a an and are as at be by can did do does for from how i in is it of on or that the this to was what when where which who why with you your le la les un une des du de et est sont qui que quoi quel quelle quels quelles comment pourquoi dans sur pour par au aux je tu il elle nous vous ce cette ces d l s qu t ne pas".split())
 STOP |= META_WORDS
@@ -192,28 +193,32 @@ def search(db, queries, model=None, limit=8, language=None):
             candidates.append((score, row["id"], row, offset, excerpt, matched))
     candidates.sort(key=lambda item: (-item[0], item[1]))
     output, seen, urls, host_counts = [], set(), set(), Counter()
+    entries, operator_counts = registry(), Counter()
     # Prefer distinct documents before taking another passage from the same page.
-    for unique_pages in (True, False):
+    for unique_operators, unique_pages in ((True, True), (False, True), (False, False)):
         for score, identifier, row, offset, excerpt, matched in candidates:
-          host = urlsplit(row["url"]).hostname
-          digest = hashlib.sha256(excerpt.encode()).hexdigest()
-          if digest in seen or host_counts[host] >= 2 or (unique_pages and row["url"] in urls):
-              continue
-          seen.add(digest)
-          urls.add(row["url"])
-          host_counts[host] += 1
-          output.append({
-              "source_id": "S" + str(len(output) + 1), "url": row["url"], "title": row["title"],
-              "excerpt": excerpt, "collected_at": row["collected_at"],
-              "chunk_id": row["id"], "content_sha256": digest,
-              "chunk_content_sha256": row["digest"],
-              "start_offset": row["start_offset"] + offset, "end_offset": row["start_offset"] + offset + len(excerpt),
-              "retrieval_score": round(score, 6), "matched_query_topics": matched,
-              "retrieval_methods": [name for name, pool in (("lexical", lexical_ids), ("semantic", semantic_ids)) if identifier in pool],
-              "verification": "unverified",
-          })
-          if len(output) == limit:
-              break
+            host = urlsplit(row["url"]).hostname
+            group = operator(row["url"], entries)
+            digest = hashlib.sha256(excerpt.encode()).hexdigest()
+            if (digest in seen or host_counts[host] >= 2 or operator_counts[group] >= 2
+                    or (unique_operators and operator_counts[group]) or (unique_pages and row["url"] in urls)):
+                continue
+            seen.add(digest)
+            urls.add(row["url"])
+            host_counts[host] += 1
+            operator_counts[group] += 1
+            output.append({
+                "source_id": "S" + str(len(output) + 1), "url": row["url"], "title": row["title"],
+                "excerpt": excerpt, "collected_at": row["collected_at"],
+                "chunk_id": row["id"], "content_sha256": digest,
+                "chunk_content_sha256": row["digest"],
+                "start_offset": row["start_offset"] + offset, "end_offset": row["start_offset"] + offset + len(excerpt),
+                "retrieval_score": round(score, 6), "matched_query_topics": matched,
+                "retrieval_methods": [name for name, pool in (("lexical", lexical_ids), ("semantic", semantic_ids)) if identifier in pool],
+                "verification": "unverified",
+            })
+            if len(output) == limit:
+                break
         if len(output) == limit:
             break
     return output, warnings, bool(semantic_ids)
@@ -250,7 +255,7 @@ def investigate(db_factory, question, language, model=None, profile="balanced", 
         database_path = db.execute("PRAGMA database_list").fetchone()[2]
         revision = [tuple(row) for row in db.execute("SELECT url,digest,collected_at FROM documents ORDER BY url")]
         semantic_revision = db.execute("SELECT value FROM engine_state WHERE name='semantic_revision'").fetchone()[0]
-        cache_key = hashlib.sha256(json.dumps(["focused-v2", database_path, revision, semantic_revision,
+        cache_key = hashlib.sha256(json.dumps(["focused-v3", database_path, revision, semantic_revision, registry(),
             question.strip(), language, profile, getattr(model, "url", ""),
             getattr(model, "chat_model", ""), getattr(model, "embed_model", ""),
             getattr(model, "timeout", 0), getattr(model, "context", 0), getattr(model, "output_limit", 0)], ensure_ascii=False).encode()).hexdigest()
