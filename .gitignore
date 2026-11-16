@@ -5,3 +5,6 @@ __pycache__/
 .env
 *.xcodeproj/
 DerivedData/
+.runtime/
+nor.local.json
+live-smoke.json

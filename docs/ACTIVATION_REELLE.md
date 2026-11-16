@@ -6,6 +6,8 @@ Le projet est maintenant dans le dépôt privé `Boban1141/NOR`, branche `nor/ac
 
 ## Vérifications manuelles
 
+Le [parcours de démarrage manuel](DEMARRAGE_MANUEL.md) dispose désormais d'une initialisation locale, d'un diagnostic des prérequis et des commandes `verify`, `collect`, `embed` et `serve`. Ce parcours ne rétablit aucune CI et ne contourne pas les blocages réseau.
+
 La CI GitHub Actions a été supprimée à la demande de l’utilisateur : aucun workflow ne subsiste dans le projet. Les anciens lancements bloqués par la facturation restent dans l’historique GitHub ; ils ne constituent pas une validation et ne seront pas relancés par de nouveaux commits.
 
 L'environnement local ne dispose ni de Tor ni d'Ollama. Docker Desktop est installé, mais son moteur n'est pas démarré. Les requêtes HTTPS de téléchargement tentées depuis le terminal ont échoué sur la résolution DNS. Aucun modèle ni binaire n'a donc été installé ou téléchargé ici.
