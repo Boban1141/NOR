@@ -1,18 +1,25 @@
 # NOR sur iPhone, depuis Windows
 
-## Compilation à distance préparée
+## Compilation manuelle sur macOS
 
-Le projet contient `.github/workflows/ios-check.yml`. Une fois le **contenu du dossier NOR** placé à la racine d'un dépôt GitHub, ce workflow peut être lancé manuellement dans Actions → NOR - iPhone compilation and tests → Run workflow.
+La CI GitHub Actions a été supprimée à la demande de l’utilisateur. Aucune compilation ne se déclenche désormais lors des commits ou des PR.
 
-Il utilise un runner macOS hébergé par GitHub pour :
+Pour compiler sans posséder de Mac, il faudra disposer d’une machine macOS distante avec Xcode et XcodeGen. Aucun service distant n’est encore configuré.
 
-1. Générer le projet Xcode avec XcodeGen.
-2. Sélectionner un simulateur iPhone réellement disponible.
-3. Compiler l'app et exécuter les tests iOS.
-4. Vérifier aussi la compilation pour un iPhone physique, sans signature.
-5. Conserver le rapport de test durant sept jours.
+Depuis le dossier `ios` sur cette machine :
 
-Il n'a pas encore été exécuté : aucun dépôt distant NOR n'a été créé ou associé. Ce workflow ne produit pas encore de fichier installable, ne publie rien et n'exige aucun secret Apple. Le coût éventuel dépend du compte GitHub et de ses minutes disponibles ; aucune exécution payante n'a été déclenchée.
+```sh
+xcodegen generate
+xcodebuild build -project NOR.xcodeproj -scheme NOR -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO
+```
+
+Pour exécuter les tests, choisir l’identifiant d’un simulateur iPhone disponible avec `xcrun simctl list devices available`, puis lancer :
+
+```sh
+xcodebuild test -project NOR.xcodeproj -scheme NOR -destination 'platform=iOS Simulator,id=IDENTIFIANT_DU_SIMULATEUR' CODE_SIGNING_ALLOWED=NO
+```
+
+Ces commandes ne produisent pas encore d’application signée installable sur l’iPhone. La compilation et les tests iOS restent non validés.
 
 ## Installation privée : étape distincte
 

@@ -3,7 +3,7 @@
 NOR explore des sources difficiles d'accès et expose les preuves et leurs limites.
 Ce livrable est un **prototype de développement**, pas une application iOS signée ni un moteur de recherche exhaustif.
 
-Le projet de travail est maintenant dans le [dépôt privé NOR](https://github.com/Boban1141/NOR), [PR nº 1](https://github.com/Boban1141/NOR/pull/1). Voir [l'état d'activation réelle](docs/ACTIVATION_REELLE.md) : les exécutions distantes sont actuellement bloquées par la facturation GitHub, avant tout lancement de job.
+Le projet de travail est maintenant dans le [dépôt privé NOR](https://github.com/Boban1141/NOR), [PR nº 1](https://github.com/Boban1141/NOR/pull/1). La CI GitHub Actions a été retirée à la demande de l’utilisateur. Les vérifications sont désormais manuelles ; voir [l’état d’activation](docs/ACTIVATION_REELLE.md).
 
 ## Ce qui est implémenté
 
@@ -53,7 +53,7 @@ La collecte ne journalise pas les adresses ni les contenus. Les pages collectée
 
 ## Générer et installer l'app sur iPhone
 
-**Sans Mac personnel** : le workflow de compilation GitHub macOS est préparé. Voir [le parcours depuis Windows](docs/IPHONE_SANS_MAC.md). Il n'a pas été exécuté et ne signe pas encore l'app.
+**Sans Mac personnel** : une machine macOS distante reste nécessaire pour compiler et signer l’app native. Voir [le parcours depuis Windows](docs/IPHONE_SANS_MAC.md). Aucun workflow GitHub Actions n’est conservé.
 
 Un Mac avec Xcode est nécessaire pour la compilation native dans ce parcours. Le code a été écrit sous Windows et **n'a pas été compilé ni testé sur simulateur/iPhone**.
 
@@ -81,7 +81,7 @@ python -m pytest -q
 
 Le petit [benchmark synthétique](docs/evaluation_v0.3.json), distinct du corpus de production, contient 8 documents et 11 questions. Le document attendu est retrouvé au premier rang pour les 11 questions. Cela ne démontre pas une performance exceptionnelle sur le dark web réel.
 
-Onze tests XCTest sont préparés : erreurs localisées, pauses et fin de question, cycle vocal, arrêt et réponse tardive après annulation. Ils n'ont pas été exécutés sous Windows ; leur exécution est prévue par le workflow macOS.
+Onze tests XCTest sont préparés : erreurs localisées, pauses et fin de question, cycle vocal, arrêt et réponse tardive après annulation. Ils n'ont pas été exécutés sous Windows ; leur exécution reste à effectuer manuellement sur macOS.
 
 À valider sur iPhone : refus des permissions, démarrage/arrêt dictée, interruption par appel ou mise en arrière-plan, absence de voix masculine, lecture longue, erreur d'accès, serveur hors ligne et tailles de texte accessibles.
 

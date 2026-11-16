@@ -43,7 +43,7 @@ En cas de refus des permissions, d'absence de voix masculine, d'indisponibilité
 
 Le code et neuf nouveaux tests XCTest sont écrits. Avec les deux tests précédents, la suite iOS comporte onze tests. Aucun n'a été compilé ou exécuté sous Windows. Le moteur du serveur n'est pas modifié par cette fonctionnalité ; ses 43 tests avaient passé lors de la version précédente.
 
-Le workflow macOS doit d'abord compiler et exécuter ces tests. Un test sur iPhone réel doit ensuite vérifier :
+Une machine macOS doit d’abord compiler et exécuter ces tests manuellement ; la CI a été retirée. Un test sur iPhone réel doit ensuite vérifier :
 
 1. Les permissions initiales et leur refus.
 2. Une pause courte au milieu d'une question, puis la fin réelle de la question.
